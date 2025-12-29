@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
         <title>CTF on Converter258</title>
-        <link>https://Converter258.github.io/categories/ctf/</link>
+        <link>http://localhost:1313/categories/ctf/</link>
         <description>Recent content in CTF on Converter258</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>zh-cn</language>
         <copyright>Converter258</copyright>
-        <lastBuildDate>Thu, 11 Dec 2025 00:15:00 +0800</lastBuildDate><atom:link href="https://Converter258.github.io/categories/ctf/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Thu, 11 Dec 2025 00:15:00 +0800</lastBuildDate><atom:link href="http://localhost:1313/categories/ctf/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Geek Challenge 2025 WP</title>
-        <link>https://Converter258.github.io/p/geek-challenge-2025-wp/</link>
+        <link>http://localhost:1313/p/geek-challenge-2025-wp/</link>
         <pubDate>Thu, 11 Dec 2025 00:15:00 +0800</pubDate>
         
-        <guid>https://Converter258.github.io/p/geek-challenge-2025-wp/</guid>
-        <description>&lt;img src="https://Converter258.github.io/p/geek-challenge-2025-wp/background.png" alt="Featured image of post Geek Challenge 2025 WP" /&gt;&lt;hr&gt;
+        <guid>http://localhost:1313/p/geek-challenge-2025-wp/</guid>
+        <description>&lt;img src="http://localhost:1313/p/geek-challenge-2025-wp/background.png" alt="Featured image of post Geek Challenge 2025 WP" /&gt;&lt;hr&gt;
 &lt;p&gt;这里只收录了我个人的wp,我队友的部分就不放出来了
 第一次写，写的烂，就当参考吧，可能有很多地方不严谨或有误
 还请各位大佬指教&lt;/p&gt;
@@ -21,10 +21,10 @@
 &lt;/h2&gt;&lt;h3 id=&#34;old_rop&#34;&gt;old_rop
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image.png&#34;
 	width=&#34;461&#34;
 	height=&#34;200&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image_hu_bd0b468abfb9627.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image_hu_8466d12726943c35.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image_hu_bd0b468abfb9627.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image_hu_8466d12726943c35.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -209,10 +209,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;mission-cipher-text&#34;&gt;Mission Cipher Text
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-2&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-1.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-1.png&#34;
 	width=&#34;470&#34;
 	height=&#34;224&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-1_hu_b853e396d6723df8.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-1_hu_242de95398fb6474.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-1_hu_b853e396d6723df8.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-1_hu_242de95398fb6474.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -384,10 +384,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;mission-exception-registration&#34;&gt;Mission Exception Registration
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-3&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-2.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-2.png&#34;
 	width=&#34;436&#34;
 	height=&#34;222&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-2_hu_ad10ce454445e22d.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-2_hu_8a05e4b62a1d24e5.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-2_hu_ad10ce454445e22d.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-2_hu_8a05e4b62a1d24e5.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -752,10 +752,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;次元囚笼&#34;&gt;次元囚笼
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-4&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-3.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-3.png&#34;
 	width=&#34;466&#34;
 	height=&#34;232&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-3_hu_15f2daf5647b29ba.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-3_hu_c5e8eb4c797c734a.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-3_hu_15f2daf5647b29ba.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-3_hu_c5e8eb4c797c734a.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -956,10 +956,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;mission-transponder&#34;&gt;Mission Transponder
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-5&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-10.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-10.png&#34;
 	width=&#34;423&#34;
 	height=&#34;165&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-10_hu_4b978d0ea6a195b3.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-10_hu_f29722239841ff54.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-10_hu_4b978d0ea6a195b3.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-10_hu_f29722239841ff54.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1144,10 +1144,10 @@
 &lt;/div&gt;&lt;p&gt;首先这个题保护开的很满，还有sandbox
 现在repeater里的printf泄露canary和rbp的值，然后下一次read的时候覆盖rbp为原本rbp+0x30的地方
 这里把栈迁移过去，可以用之前泄露canary相同的方法泄露main的地址
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-12.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-12.png&#34;
 	width=&#34;1445&#34;
 	height=&#34;511&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-12_hu_1ff7f83aa4006f1b.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-12_hu_176e00e87a135bc1.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-12_hu_1ff7f83aa4006f1b.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-12_hu_176e00e87a135bc1.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1159,10 +1159,10 @@
 	
 &gt;
 再局部覆写返回地址的低字节回到偏移0x1408的地方再跑一遍repeater
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-11.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-11.png&#34;
 	width=&#34;1272&#34;
 	height=&#34;990&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-11_hu_141deb6bc58019aa.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-11_hu_41321d06eae395cd.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-11_hu_141deb6bc58019aa.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-11_hu_41321d06eae395cd.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1174,10 +1174,10 @@
 	
 &gt;
 然后再栈迁移一次rbp到stderr@GLIBC_2.2.5+0x30的地址那里,让printf泄露地址并算出libc基址
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-14.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-14.png&#34;
 	width=&#34;1214&#34;
 	height=&#34;309&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-14_hu_32ff41960ef0a713.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-14_hu_3254ecd257ef2fe0.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-14_hu_32ff41960ef0a713.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-14_hu_3254ecd257ef2fe0.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1298,10 +1298,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;mission-ember&#34;&gt;Mission Ember
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-6&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-4.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-4.png&#34;
 	width=&#34;556&#34;
 	height=&#34;179&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-4_hu_2fa13bb9097c98e5.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-4_hu_221a7813f6b3d2c6.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-4_hu_2fa13bb9097c98e5.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-4_hu_221a7813f6b3d2c6.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1393,10 +1393,10 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;开了沙箱，没办法直接sh，只能orw，但是mmap了一块rwx区域，在0x405000，大小0x4000，并读入6个字节，最后会执行读入的指令，也就是说我们需要在六个字节里实现扩展写并写入完整的shellcode.
 在call r8的地方下断点，查看栈和寄存器
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-5.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-5.png&#34;
 	width=&#34;1567&#34;
 	height=&#34;250&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-5_hu_4d248735bd12daa.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-5_hu_66675710aad11006.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-5_hu_4d248735bd12daa.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-5_hu_66675710aad11006.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1407,10 +1407,10 @@
 		data-flex-basis=&#34;1504px&#34;
 	
 &gt;
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-6.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-6.png&#34;
 	width=&#34;793&#34;
 	height=&#34;728&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-6_hu_656a8b54d065931f.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-6_hu_44d8a27f5be68dc.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-6_hu_656a8b54d065931f.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-6_hu_44d8a27f5be68dc.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1476,10 +1476,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;血池轮回&#34;&gt;血池轮回
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-7&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;查保护
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-7.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-7.png&#34;
 	width=&#34;448&#34;
 	height=&#34;226&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-7_hu_8ebac8d00ddf8268.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-7_hu_5a682e8aaa18dba2.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-7_hu_8ebac8d00ddf8268.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-7_hu_5a682e8aaa18dba2.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1596,10 +1596,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;看一眼loop里，和上一个ember差不多，也是扩展写，但完整的shellcode长度也有限
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-8.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-8.png&#34;
 	width=&#34;682&#34;
 	height=&#34;790&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-8_hu_6fd6c27d73af6328.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-8_hu_5271f7fdff612f3c.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-8_hu_6fd6c27d73af6328.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-8_hu_5271f7fdff612f3c.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -1611,10 +1611,10 @@
 	
 &gt;
 所以直接五字节扩展写+短shellcode
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-9.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-9.png&#34;
 	width=&#34;1695&#34;
 	height=&#34;291&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-9_hu_51bd60ebd5f9dba8.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-9_hu_de4a2cd13017a5fb.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-9_hu_51bd60ebd5f9dba8.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-9_hu_de4a2cd13017a5fb.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -3667,10 +3667,10 @@
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-13&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;这里直接打开看和之前那个奇妙冒险1差不多，算出来的结果也差不多，但事实并非如此
 查看汇编代码
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-15.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-15.png&#34;
 	width=&#34;401&#34;
 	height=&#34;174&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-15_hu_3e5c430ccb18ce10.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-15_hu_7ae1fe3f234c5bb5.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-15_hu_3e5c430ccb18ce10.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-15_hu_7ae1fe3f234c5bb5.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -3991,10 +3991,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;在这里发现了点线索，大概是个异或，直接下断点动调看看密文
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-16.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-16.png&#34;
 	width=&#34;1989&#34;
 	height=&#34;1049&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-16_hu_6cca5fed027f9766.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-16_hu_8bf01c42d7586dd6.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-16_hu_6cca5fed027f9766.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-16_hu_8bf01c42d7586dd6.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -4186,10 +4186,10 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;最基础的异或加密，且key是geek2025&lt;/p&gt;
 &lt;h4 id=&#34;exp-17&#34;&gt;exp
-&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-17.png&#34;
+&lt;/h4&gt;&lt;p&gt;&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-17.png&#34;
 	width=&#34;2495&#34;
 	height=&#34;1417&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-17_hu_85338e05e3b8cc98.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-17_hu_edad3801b0696718.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-17_hu_85338e05e3b8cc98.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-17_hu_edad3801b0696718.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -4221,10 +4221,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;mysterious_box的数与密文相加,可以通过动调
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-18.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-18.png&#34;
 	width=&#34;1048&#34;
 	height=&#34;1049&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-18_hu_c0106765f3fa8f12.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-18_hu_8c3c93d96a802022.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-18_hu_c0106765f3fa8f12.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-18_hu_8c3c93d96a802022.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -4723,10 +4723,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;其中加密的重点在于funcs_AE2612
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-19.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-19.png&#34;
 	width=&#34;960&#34;
 	height=&#34;367&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-19_hu_2e9db861057369ac.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-19_hu_da5f6e587dc8dd8a.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-19_hu_2e9db861057369ac.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-19_hu_da5f6e587dc8dd8a.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -5020,10 +5020,10 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;使用它解压zip，得到一张图片wow.png，但并不包含flag
 使用010再打开图片，修改图片大小
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-20.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-20.png&#34;
 	width=&#34;1449&#34;
 	height=&#34;694&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-20_hu_4cf098e9f670800d.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-20_hu_6271a5c0dd947fb7.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-20_hu_4cf098e9f670800d.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-20_hu_6271a5c0dd947fb7.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -5035,10 +5035,10 @@
 	
 &gt;
 再次打开图片发现flag
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-21.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-21.png&#34;
 	width=&#34;942&#34;
 	height=&#34;898&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-21_hu_9c85e09cedee2603.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-21_hu_4f13319ae7bbc9be.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-21_hu_9c85e09cedee2603.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-21_hu_4f13319ae7bbc9be.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -5092,10 +5092,10 @@
 &lt;/div&gt;&lt;h3 id=&#34;hidden&#34;&gt;hidden
 &lt;/h3&gt;&lt;h4 id=&#34;解题流程-21&#34;&gt;解题流程
 &lt;/h4&gt;&lt;p&gt;拿到docx文件，直接解压,从word/document.xml得到
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-22.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-22.png&#34;
 	width=&#34;500&#34;
 	height=&#34;270&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-22_hu_7ae409db7ad5dfd7.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-22_hu_e9689a8a14300e4a.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-22_hu_7ae409db7ad5dfd7.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-22_hu_e9689a8a14300e4a.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -5125,10 +5125,10 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;最后一张图片无法打开，使用010检查，发现文件头损坏，补上即可
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-23.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-23.png&#34;
 	width=&#34;1467&#34;
 	height=&#34;1069&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-23_hu_21ae0117b460b117.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-23_hu_52730d99fe52349a.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-23_hu_21ae0117b460b117.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-23_hu_52730d99fe52349a.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -5140,10 +5140,10 @@
 	
 &gt;
 得到
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-24.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-24.png&#34;
 	width=&#34;951&#34;
 	height=&#34;937&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-24_hu_ae1de74a107681a3.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-24_hu_ad83d387308bd932.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-24_hu_ae1de74a107681a3.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-24_hu_ad83d387308bd932.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
@@ -8953,10 +8953,10 @@
 &lt;/h3&gt;&lt;h4 id=&#34;解题记录&#34;&gt;解题记录
 &lt;/h4&gt;&lt;p&gt;同一张二维码两个不同的方向扭曲
 因为直接用ps调图片搞不出来，干脆直接重新画一张了，首先这是29*29的二维码
-&lt;img src=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-25.png&#34;
+&lt;img src=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-25.png&#34;
 	width=&#34;2560&#34;
 	height=&#34;1533&#34;
-	srcset=&#34;https://Converter258.github.io/p/geek-challenge-2025-wp/image-25_hu_4f5910b6ab0579c0.png 480w, https://Converter258.github.io/p/geek-challenge-2025-wp/image-25_hu_5e8b62d362d98788.png 1024w&#34;
+	srcset=&#34;http://localhost:1313/p/geek-challenge-2025-wp/image-25_hu_4f5910b6ab0579c0.png 480w, http://localhost:1313/p/geek-challenge-2025-wp/image-25_hu_5e8b62d362d98788.png 1024w&#34;
 	loading=&#34;lazy&#34;
 	
 		alt=&#34;alt text&#34;
