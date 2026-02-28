@@ -8,26 +8,27 @@
         <language>zh-cn</language>
         <copyright>Converter258</copyright>
         <lastBuildDate>Fri, 27 Feb 2026 13:07:57 +0800</lastBuildDate><atom:link href="http://localhost:1313/post/index.xml" rel="self" type="application/rss+xml" /><item>
-        <title>Perf Side Channel Attack</title>
-        <link>http://localhost:1313/p/perf-side-channel-attack/</link>
+        <title>Perf与简单的侧信道攻击</title>
+        <link>http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</link>
         <pubDate>Fri, 27 Feb 2026 13:07:57 +0800</pubDate>
         
-        <guid>http://localhost:1313/p/perf-side-channel-attack/</guid>
-        <description>&lt;img src="http://localhost:1313/background.png" alt="Featured image of post Perf Side Channel Attack" /&gt;&lt;h1 id=&#34;perf&#34;&gt;perf
-&lt;/h1&gt;&lt;h2 id=&#34;简介&#34;&gt;简介
-&lt;/h2&gt;&lt;p&gt;perf 是 Linux 系统性能分析工具集，全称是 Performance Event Counters
+        <guid>http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</guid>
+        <description>&lt;img src="http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background.jpg" alt="Featured image of post Perf与简单的侧信道攻击" /&gt;&lt;h2 id=&#34;perf&#34;&gt;perf
+&lt;/h2&gt;&lt;h3 id=&#34;简介&#34;&gt;简介
+&lt;/h3&gt;&lt;p&gt;&lt;code&gt;perf&lt;/code&gt; 是 Linux 系统性能分析工具集，全称是 &lt;code&gt;Performance Event Counters&lt;/code&gt;
 它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
-我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 PMU 功能&lt;/p&gt;
-&lt;h2 id=&#34;环境配置与错误排查&#34;&gt;环境配置与错误排查
-&lt;/h2&gt;&lt;h3 id=&#34;事前准备&#34;&gt;事前准备
-&lt;/h3&gt;&lt;p&gt;首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 &lt;code&gt;性能计数器&lt;/code&gt; ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上&lt;code&gt;虚拟化 CPU 性能计数器&lt;/code&gt;，并禁用所有HyperV相关的设置，并关闭虚拟化保护
+我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 &lt;code&gt;PMU&lt;/code&gt;
+功能&lt;/p&gt;
+&lt;h3 id=&#34;准备perf&#34;&gt;准备perf
+&lt;/h3&gt;&lt;h4 id=&#34;事前准备&#34;&gt;事前准备
+&lt;/h4&gt;&lt;p&gt;首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 &lt;code&gt;性能计数器&lt;/code&gt; ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上&lt;code&gt;虚拟化 CPU 性能计数器&lt;/code&gt;，并禁用所有HyperV相关的设置，并关闭虚拟化保护
 包括(仅限VMware使用者,wsl2 不要改):&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Windows安全中心 -&amp;gt; 设备安全性 -&amp;gt; 内核隔离 -&amp;gt; 内存完整性/本地安全机构保护&lt;/li&gt;
 &lt;li&gt;Windows功能 -&amp;gt; Hyper-V/Virtual Machine Platform/Windows虚拟机监控程序平台&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;perf安装&#34;&gt;perf安装
-&lt;/h3&gt;&lt;p&gt;安装 perf 可以通过&lt;/p&gt;
+&lt;h4 id=&#34;perf安装&#34;&gt;perf安装
+&lt;/h4&gt;&lt;p&gt;安装 perf 可以通过&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -36,9 +37,9 @@
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo apt-get install linux-tools-generic
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;h3 id=&#34;相关设置&#34;&gt;相关设置
-&lt;/h3&gt;&lt;h4 id=&#34;使用权限&#34;&gt;使用权限
-&lt;/h4&gt;&lt;p&gt;等安装完成后并不能直接使用，你需要先查看&lt;/p&gt;
+&lt;/div&gt;&lt;h4 id=&#34;相关设置&#34;&gt;相关设置
+&lt;/h4&gt;&lt;h5 id=&#34;使用权限&#34;&gt;使用权限
+&lt;/h5&gt;&lt;p&gt;等安装完成后并不能直接使用，你需要先查看&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -48,8 +49,16 @@
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;这个&lt;code&gt;perf_event_paranoid&lt;/code&gt;设置了运行时权限相关的内容，建议修改成小于等于1的值&lt;/p&gt;
-&lt;h4 id=&#34;cpu核心与内存分配&#34;&gt;CPU核心与内存分配
-&lt;/h4&gt;&lt;p&gt;此时可以尝试一下使用&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;sudo sh -c &lt;span class=&#34;s1&#34;&gt;&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h5 id=&#34;cpu核心与内存分配&#34;&gt;CPU核心与内存分配
+&lt;/h5&gt;&lt;p&gt;此时可以尝试一下使用&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -78,8 +87,8 @@
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;taskset -c &amp;lt;core&amp;gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;h4 id=&#34;手动编译-perf-适用于wsl2用户&#34;&gt;手动编译 perf (适用于wsl2用户)
-&lt;/h4&gt;&lt;p&gt;如果你使用的是 wsl2 ，且以上设置后仍不可使用，可以尝试手动编译适合自己的 perf
+&lt;/div&gt;&lt;h5 id=&#34;手动编译-perf-适用于wsl2用户&#34;&gt;手动编译 perf (适用于wsl2用户)
+&lt;/h5&gt;&lt;p&gt;如果你使用的是 wsl2 ，且以上设置后仍不可使用，可以尝试手动编译适合自己的 perf
 首先准备编译需要用到的一些工具包&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -135,9 +144,9 @@
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;此时再次重复之前的权限设置和核心内存设置即可&lt;/p&gt;
 &lt;h4 id=&#34;rmks&#34;&gt;RMKS
-&lt;/h4&gt;&lt;p&gt;如果以上设置都完成了，但你的perf只能使用软件事件或根本无法使用，那么恭喜你该尝试其他的设备了，至少我这里虚拟机全军覆没，上实体机了&lt;/p&gt;
-&lt;h2 id=&#34;简单使用说明&#34;&gt;简单使用说明
-&lt;/h2&gt;&lt;p&gt;如果你需要 perf 的完整使用说明，可以前往&lt;a class=&#34;link&#34; href=&#34;https://www.runoob.com/linux/linux-comm-perf.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
+&lt;/h4&gt;&lt;p&gt;如果以上设置都完成了，但你的perf只能使用软件事件或根本无法使用,这里包括使用 perf 输出指令数为&lt;code&gt;0&lt;/code&gt;或 &lt;code&gt;&amp;lt;not supported&amp;gt;&lt;/code&gt;，那么恭喜你该尝试其他的设备了，至少我这里虚拟机基本全军覆没，为了方便，最后还是上实体机了&lt;/p&gt;
+&lt;h3 id=&#34;简单使用说明&#34;&gt;简单使用说明
+&lt;/h3&gt;&lt;p&gt;如果你需要 perf 的完整使用说明，可以前往&lt;a class=&#34;link&#34; href=&#34;https://www.runoob.com/linux/linux-comm-perf.html&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;perf&lt;/a&gt;学习&lt;/p&gt;
 &lt;p&gt;这里我们主要用到 &lt;code&gt;stat&lt;/code&gt;&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
@@ -166,15 +175,15 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;-d：显示更多详细事件
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;h1 id=&#34;side-chanel-attack&#34;&gt;Side-Chanel-Attack
-&lt;/h1&gt;&lt;p&gt;这里简单介绍使用 perf 指令计数的侧信道攻击，我选择搭配例题讲解
+&lt;/div&gt;&lt;h2 id=&#34;side-chanel-attack&#34;&gt;Side-Chanel-Attack
+&lt;/h2&gt;&lt;p&gt;这里简单介绍使用 perf 指令计数的侧信道攻击，我选择搭配例题讲解
 这里使用的是 SwampCTF2019 的题目 future_fun 作为例题，同时我也是在这个题上研究学习的该手法
 题目可以从 &lt;a class=&#34;link&#34; href=&#34;https://github.com/ufsit/SwampCTF-2019-Challenges/tree/master&#34;  target=&#34;_blank&#34; rel=&#34;noopener&#34;
     &gt;SwampCTF-2019&lt;/a&gt; 寻找下载&lt;/p&gt;
-&lt;h2 id=&#34;简单原理&#34;&gt;简单原理
-&lt;/h2&gt;&lt;p&gt;一个程序如果要判断两个字符串是否相同，最简单的方法就是直接从第一个字符开始，逐个进行比较，如果发现不同的字符，就会停下并返回结果，如果一个字符相同，就会继续比较下去，因此如果字符相同的个数更多，执行的指令数会与不同的情况更多，这样就可以逐个字符的确认完整的字符串，有点像拿铁丝翘一些比较原始的锁，将每个弹簧分别依次复位并成功开锁&lt;/p&gt;
-&lt;h2 id=&#34;例题&#34;&gt;例题
-&lt;/h2&gt;&lt;p&gt;拿到 future_fun 的题目文件后，直接运行，可以提前知到flag格式为 flag{} ，事实上不知道flag格式也行，只是多跑两轮计数罢了&lt;/p&gt;
+&lt;h3 id=&#34;简单原理&#34;&gt;简单原理
+&lt;/h3&gt;&lt;p&gt;一个程序如果要判断两个字符串是否相同，最简单的方法就是直接从第一个字符开始，逐个进行比较，如果发现不同的字符，就会停下并返回结果，如果一个字符相同，就会继续比较下去，因此如果字符相同的个数更多，执行的指令数会与不同的情况更多，这样就可以逐个字符的确认完整的字符串，有点像拿铁丝翘一些比较原始的锁，将每个弹簧分别依次复位并成功开锁&lt;/p&gt;
+&lt;h3 id=&#34;例题&#34;&gt;例题
+&lt;/h3&gt;&lt;p&gt;拿到 future_fun 的题目文件后，直接运行，可以提前知到flag格式为 flag{} ，事实上不知道flag格式也行，只是多跑两轮计数罢了&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt;1
@@ -210,10 +219,10 @@
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Give the key, if you think you are worthy.
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;1234
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0::instructions:u:5593443:100.00::
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;8176046::instructions:u:5593443:100.00::
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;这里的 &lt;code&gt;5593443&lt;/code&gt; 就是结束时总共的指令数
+&lt;/div&gt;&lt;p&gt;这里的 &lt;code&gt;8176046&lt;/code&gt; 就是结束时总共的指令数，如果这一位你的结果是0，那么请回到上一节排查问题
 我们尝试将第一个字符改成f&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
@@ -228,7 +237,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Give the key, if you think you are worthy.
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;f111
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0::instructions:u:7950522:100.00::
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;16149892::instructions:u:7950522:100.00::
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;可以发现指令数的确显著变大了，继续测试&lt;/p&gt;
@@ -245,13 +254,12 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;Give the key, if you think you are worthy.
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;fl11
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;0::instructions:u:9684953:100.00::
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;24123750::instructions:u:9684953:100.00::
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;&lt;p&gt;结果的确如预想一样，当一个字符对应上后指令数会显著增大&lt;/p&gt;
-&lt;p&gt;所以我们可以尝试逐字符输入，每个字符处分别尝试所有的可打印字符，并统计指令数，将最大的一个提取出来，最后可以写出一份合适的exp&lt;/p&gt;
-&lt;h2 id=&#34;exp&#34;&gt;exp
-&lt;/h2&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;p&gt;所以我们可以尝试逐字符输入，每个字符处分别尝试所有的可打印字符，并统计指令数，将最大的一个提取出来，最后可以写出一份合适的exp，最后得到以下输出&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
 &lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
 &lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
@@ -273,6 +281,67 @@
 &lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
 &lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;19
 &lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;20
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;21
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;22
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;23
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;24
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;25
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;26
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;27
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;28
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-fallback&#34; data-lang=&#34;fallback&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;fl
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;fla
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_t
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1n
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w4
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41t
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41ti
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41tin
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41ting
+&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;flag{g00d_th1ng5_f0r_w41ting}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;h3 id=&#34;exp&#34;&gt;exp
+&lt;/h3&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
+&lt;table class=&#34;lntable&#34;&gt;&lt;tr&gt;&lt;td class=&#34;lntd&#34;&gt;
+&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code&gt;&lt;span class=&#34;lnt&#34;&gt; 1
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 2
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 3
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 4
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 5
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 6
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 7
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 8
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt; 9
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;10
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;11
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;12
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;13
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;14
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;15
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;16
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;17
+&lt;/span&gt;&lt;span class=&#34;lnt&#34;&gt;18
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td class=&#34;lntd&#34;&gt;
 &lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;kn&#34;&gt;from&lt;/span&gt; &lt;span class=&#34;nn&#34;&gt;subprocess&lt;/span&gt; &lt;span class=&#34;kn&#34;&gt;import&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;*&lt;/span&gt;
@@ -287,9 +356,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;k&#34;&gt;for&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt; &lt;span class=&#34;ow&#34;&gt;in&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;ascii_letters&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;digits&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;string&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;punctuation&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;):&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;Popen&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;command&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;stdout&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;PIPE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;stdin&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;PIPE&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;stderr&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;STDOUT&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;shell&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;kc&#34;&gt;True&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;target_output&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;,&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;_&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;target&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;communicate&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;nb&#34;&gt;input&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;=&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&#34;si&#34;&gt;%s&lt;/span&gt;&lt;span class=&#34;se&#34;&gt;\n&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;%&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;flag&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;+&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;))&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;encode&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;())&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;c1&#34;&gt;#print(i, target_output)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;n&#34;&gt;instructions&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;nb&#34;&gt;int&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;target_output&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;decode&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;()&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;split&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;s1&#34;&gt;&amp;#39;:&amp;#39;&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)[&lt;/span&gt;&lt;span class=&#34;mi&#34;&gt;0&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;])&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;c1&#34;&gt;#print(instructions)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;        &lt;span class=&#34;k&#34;&gt;if&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;instructions&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;ins_count&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;:&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;n&#34;&gt;count_chr&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;i&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;            &lt;span class=&#34;n&#34;&gt;ins_count&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;n&#34;&gt;instructions&lt;/span&gt;
@@ -297,7 +364,11 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;    &lt;span class=&#34;nb&#34;&gt;print&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;(&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;flag&lt;/span&gt;&lt;span class=&#34;p&#34;&gt;)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description>
+&lt;/div&gt;&lt;h2 id=&#34;最后的垃圾话&#34;&gt;最后的垃圾话
+&lt;/h2&gt;&lt;p&gt;这种打法还是太超模了，很大一部分简单的 re 题目就这一个exp都能差不多解决了，但是要是加上一些长度检验之类的防范措施，就得再手动修改下exp了&lt;/p&gt;
+&lt;p&gt;这篇文章还是受 guyinatuxedo 的启发，但是他的文章内容是错的，至少perf部分有问题，不要错把运行时间与指令数搞混淆&lt;/p&gt;
+&lt;p&gt;如果不使用 &lt;code&gt;instructions:u&lt;/code&gt; 而去看运行时间，理论上也能出，但是受限于运行时环境的稳定性，可能需要多次计算取平均&lt;/p&gt;
+</description>
         </item>
         <item>
         <title>栈迁移 - Pivoting</title>

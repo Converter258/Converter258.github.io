@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="perf 简介 perf 是 Linux 系统性能分析工具集，全称是 Performance Event Counters 它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力 我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 PMU 功能\n">
+<title>Perf与简单的侧信道攻击</title>
+
+<link rel='canonical' href='http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/'>
+
+<link rel="stylesheet" href="/scss/style.min.07013ecaa2cce7ca7c974ddd4c5f116605e3efaeaf51d39b2ffb94b303885842.css"><meta property='og:title' content="Perf与简单的侧信道攻击">
+<meta property='og:description' content="perf 简介 perf 是 Linux 系统性能分析工具集，全称是 Performance Event Counters 它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力 我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 PMU 功能\n">
+<meta property='og:url' content='http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/'>
+<meta property='og:site_name' content='Converter258'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='CTF' /><meta property='article:published_time' content='2026-02-27T13:07:57&#43;08:00'/><meta property='article:modified_time' content='2026-02-27T13:07:57&#43;08:00'/><meta property='og:image' content='http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background.jpg' />
+<meta name="twitter:title" content="Perf与简单的侧信道攻击">
+<meta name="twitter:description" content="perf 简介 perf 是 Linux 系统性能分析工具集，全称是 Performance Event Counters 它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力 我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 PMU 功能\n"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='http://localhost:1313/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background.jpg' />
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="切换菜单">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/avatar_hu_f4434711c60fa7a7.jpg" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">☘</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Converter258</a></h1>
+            <h2 class="site-description">孩子快饿死了，赏我点吃的吧</h2>
+        </div>
+    </header><ol class="menu-social">
+            
+                <li>
+                    <a 
+                        href='https://github.com/Converter258'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>主页</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>搜索</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>归档</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%85%B3%E4%BA%8E/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="7" r="4" />
+  <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+</svg>
+
+
+
+                
+                <span>关于</span>
+            </a>
+        </li>
+        
+        
+        <li >
+            <a href='/%E5%8F%8B%E6%83%85%E9%93%BE%E6%8E%A5/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>友情链接</span>
+            </a>
+        </li>
+        
+        <li class="menu-bottom-section">
+            <ol class="menu">
+
+                
+                    <li id="dark-mode-toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                        <span>暗色模式</span>
+                    </li>
+                
+            </ol>
+        </li>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">目录</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li><a href="#perf">perf</a>
+      <ol>
+        <li><a href="#简介">简介</a></li>
+        <li><a href="#准备perf">准备perf</a>
+          <ol>
+            <li><a href="#事前准备">事前准备</a></li>
+            <li><a href="#perf安装">perf安装</a></li>
+            <li><a href="#相关设置">相关设置</a></li>
+            <li><a href="#rmks">RMKS</a></li>
+          </ol>
+        </li>
+        <li><a href="#简单使用说明">简单使用说明</a></li>
+      </ol>
+    </li>
+    <li><a href="#side-chanel-attack">Side-Chanel-Attack</a>
+      <ol>
+        <li><a href="#简单原理">简单原理</a></li>
+        <li><a href="#例题">例题</a></li>
+        <li><a href="#exp">exp</a></li>
+      </ol>
+    </li>
+    <li><a href="#最后的垃圾话">最后的垃圾话</a></li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="has-image main-article">
+    <header class="article-header">
+        <div class="article-image">
+            <a href="/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
+                <img src="/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background_hu_3ea70ce91683c0b2.jpg"
+                        srcset="/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background_hu_3ea70ce91683c0b2.jpg 800w, /p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/background_hu_e4b6e974fbe303cc.jpg 1600w"
+                        width="800" 
+                        height="300" 
+                        loading="lazy"
+                        alt="Featured image of post Perf与简单的侧信道攻击" />
+                
+            </a>
+        </div>
+    
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/ctf/" style="background-color: #E8F5E9; color: #2D5A27;">
+                CTF
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">Perf与简单的侧信道攻击</a>
+        </h2>
+    
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published" datetime='2026-02-27T13:07:57&#43;08:00'>2026-02-27</time>
+            </div>
+        
+
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h2 id="perf">perf
+</h2><h3 id="简介">简介
+</h3><p><code>perf</code> 是 Linux 系统性能分析工具集，全称是 <code>Performance Event Counters</code>
+它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
+我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 <code>PMU</code>
+功能</p>
+<h3 id="准备perf">准备perf
+</h3><h4 id="事前准备">事前准备
+</h4><p>首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 <code>性能计数器</code> ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上<code>虚拟化 CPU 性能计数器</code>，并禁用所有HyperV相关的设置，并关闭虚拟化保护
+包括(仅限VMware使用者,wsl2 不要改):</p>
+<ul>
+<li>Windows安全中心 -&gt; 设备安全性 -&gt; 内核隔离 -&gt; 内存完整性/本地安全机构保护</li>
+<li>Windows功能 -&gt; Hyper-V/Virtual Machine Platform/Windows虚拟机监控程序平台</li>
+</ul>
+<h4 id="perf安装">perf安装
+</h4><p>安装 perf 可以通过</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt-get install linux-tools-generic
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="相关设置">相关设置
+</h4><h5 id="使用权限">使用权限
+</h5><p>等安装完成后并不能直接使用，你需要先查看</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">cat /proc/sys/kernel/perf_event_paranoid
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这个<code>perf_event_paranoid</code>设置了运行时权限相关的内容，建议修改成小于等于1的值</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo sh -c <span class="s1">&#39;echo -1 &gt; /proc/sys/kernel/perf_event_paranoid&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="cpu核心与内存分配">CPU核心与内存分配
+</h5><p>此时可以尝试一下使用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">perf stat whoami
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>检测perf是否能正常运行，如果你的 CPU 是有大小核区分的话，可能会出现内存分配问题，尝试查看你的 CPU 状态</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">cat /sys/devices/cpu_atom/cpus
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里可以看到你的 CPU 属于 atom 的核心，也就是常说的能效核
+确定了 CPU 核心属于 atom 或 core 后，将进程绑定在非 atom 的核心上运行
+可以通过 taskset 指令绑定核心</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">taskset -c &lt;core&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h5 id="手动编译-perf-适用于wsl2用户">手动编译 perf (适用于wsl2用户)
+</h5><p>如果你使用的是 wsl2 ，且以上设置后仍不可使用，可以尝试手动编译适合自己的 perf
+首先准备编译需要用到的一些工具包</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo apt install -y build-essential flex bison libelf-dev libdw-dev libaudit-dev libnuma-dev libssl-dev python3-dev pkg-config libcap-dev
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>接下来确定内核版本</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">uname -r
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>记录下完整的版本号
+接下来 git clone 得到对应版本的 wsl2 内核源码，只需要 clone 该版本分支下的内容即可
+可以前往<a class="link" href="https://github.com/microsoft/WSL2-Linux-Kernel"  target="_blank" rel="noopener"
+    >WSL2-Linux-Kernel</a>手动查看对应分支后再clone</p>
+<p>将源码完全解压，并进入 perf 目录</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nb">cd</span> tools/perf
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>此时可以开始编译</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">make -j<span class="k">$(</span>nproc<span class="k">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>完成编译后将得到的 perf 复制到 <code>/usr/local/bin</code> 目录</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo cp perf /usr/local/bin/
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>此时再次重复之前的权限设置和核心内存设置即可</p>
+<h4 id="rmks">RMKS
+</h4><p>如果以上设置都完成了，但你的perf只能使用软件事件或根本无法使用,这里包括使用 perf 输出指令数为<code>0</code>或 <code>&lt;not supported&gt;</code>，那么恭喜你该尝试其他的设备了，至少我这里虚拟机基本全军覆没，为了方便，最后还是上实体机了</p>
+<h3 id="简单使用说明">简单使用说明
+</h3><p>如果你需要 perf 的完整使用说明，可以前往<a class="link" href="https://www.runoob.com/linux/linux-comm-perf.html"  target="_blank" rel="noopener"
+    >perf</a>学习</p>
+<p>这里我们主要用到 <code>stat</code></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">perf stat <span class="o">[</span>options<span class="o">]</span> <span class="nb">command</span> <span class="o">[</span>command-options<span class="o">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">常用选项
+</span></span><span class="line"><span class="cl">-e：指定要监控的事件
+</span></span><span class="line"><span class="cl">-p：监控指定进程ID
+</span></span><span class="line"><span class="cl">-a：监控所有CPU
+</span></span><span class="line"><span class="cl">-r：重复运行并显示平均值
+</span></span><span class="line"><span class="cl">-d：显示更多详细事件
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="side-chanel-attack">Side-Chanel-Attack
+</h2><p>这里简单介绍使用 perf 指令计数的侧信道攻击，我选择搭配例题讲解
+这里使用的是 SwampCTF2019 的题目 future_fun 作为例题，同时我也是在这个题上研究学习的该手法
+题目可以从 <a class="link" href="https://github.com/ufsit/SwampCTF-2019-Challenges/tree/master"  target="_blank" rel="noopener"
+    >SwampCTF-2019</a> 寻找下载</p>
+<h3 id="简单原理">简单原理
+</h3><p>一个程序如果要判断两个字符串是否相同，最简单的方法就是直接从第一个字符开始，逐个进行比较，如果发现不同的字符，就会停下并返回结果，如果一个字符相同，就会继续比较下去，因此如果字符相同的个数更多，执行的指令数会与不同的情况更多，这样就可以逐个字符的确认完整的字符串，有点像拿铁丝翘一些比较原始的锁，将每个弹簧分别依次复位并成功开锁</p>
+<h3 id="例题">例题
+</h3><p>拿到 future_fun 的题目文件后，直接运行，可以提前知到flag格式为 flag{} ，事实上不知道flag格式也行，只是多跑两轮计数罢了</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ ./future_fun 
+</span></span><span class="line"><span class="cl">Give the key, if you think you are worthy.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">1234
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>此时我们再使用 perf 进行测试</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ perf stat -x : -e instructions:u ./future_fun
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>此时可以看到输出下面多出来了一行</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Give the key, if you think you are worthy.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">1234
+</span></span><span class="line"><span class="cl">8176046::instructions:u:5593443:100.00::
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里的 <code>8176046</code> 就是结束时总共的指令数，如果这一位你的结果是0，那么请回到上一节排查问题
+我们尝试将第一个字符改成f</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ perf stat -x : -e instructions:u ./future_fun
+</span></span><span class="line"><span class="cl">Give the key, if you think you are worthy.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">f111
+</span></span><span class="line"><span class="cl">16149892::instructions:u:7950522:100.00::
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>可以发现指令数的确显著变大了，继续测试</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">$ perf stat -x : -e instructions:u ./future_fun
+</span></span><span class="line"><span class="cl">Give the key, if you think you are worthy.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">fl11
+</span></span><span class="line"><span class="cl">24123750::instructions:u:9684953:100.00::
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>结果的确如预想一样，当一个字符对应上后指令数会显著增大</p>
+<p>所以我们可以尝试逐字符输入，每个字符处分别尝试所有的可打印字符，并统计指令数，将最大的一个提取出来，最后可以写出一份合适的exp，最后得到以下输出</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">f
+</span></span><span class="line"><span class="cl">fl
+</span></span><span class="line"><span class="cl">fla
+</span></span><span class="line"><span class="cl">flag
+</span></span><span class="line"><span class="cl">flag{
+</span></span><span class="line"><span class="cl">flag{g
+</span></span><span class="line"><span class="cl">flag{g0
+</span></span><span class="line"><span class="cl">flag{g00
+</span></span><span class="line"><span class="cl">flag{g00d
+</span></span><span class="line"><span class="cl">flag{g00d_
+</span></span><span class="line"><span class="cl">flag{g00d_t
+</span></span><span class="line"><span class="cl">flag{g00d_th
+</span></span><span class="line"><span class="cl">flag{g00d_th1
+</span></span><span class="line"><span class="cl">flag{g00d_th1n
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w4
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41t
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41ti
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41tin
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41ting
+</span></span><span class="line"><span class="cl">flag{g00d_th1ng5_f0r_w41ting}
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="exp">exp
+</h3><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="o">*</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">string</span>
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="nn">sys</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">command</span> <span class="o">=</span> <span class="s2">&#34;perf stat -x : -e instructions:u &#34;</span> <span class="o">+</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&#34; 1&gt;/dev/null&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="n">flag</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">ins_count</span> <span class="o">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">    <span class="n">count_chr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">punctuation</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">target</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">target_output</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">flag</span> <span class="o">+</span> <span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">        <span class="n">instructions</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_output</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">instructions</span> <span class="o">&gt;</span> <span class="n">ins_count</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">count_chr</span> <span class="o">=</span> <span class="n">i</span>
+</span></span><span class="line"><span class="cl">            <span class="n">ins_count</span> <span class="o">=</span> <span class="n">instructions</span>
+</span></span><span class="line"><span class="cl">    <span class="n">flag</span> <span class="o">+=</span> <span class="n">count_chr</span>
+</span></span><span class="line"><span class="cl">    <span class="nb">print</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="最后的垃圾话">最后的垃圾话
+</h2><p>这种打法还是太超模了，很大一部分简单的 re 题目就这一个exp都能差不多解决了，但是要是加上一些长度检验之类的防范措施，就得再手动修改下exp了</p>
+<p>这篇文章还是受 guyinatuxedo 的启发，但是他的文章内容是错的，至少perf部分有问题，不要错把运行时间与指令数搞混淆</p>
+<p>如果不使用 <code>instructions:u</code> 而去看运行时间，理论上也能出，但是受限于运行时环境的稳定性，可能需要多次计算取平均</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/ctf/">CTF</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">相关文章</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="has-image">
+    <a href="/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/">
+        
+        
+            <div class="article-image">
+                <img src="/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/background.bfc250ce962c98dca672d241310c64c2_hu_77d4d747982c6c41.jpg" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post 栈迁移 - Pivoting"
+                        
+                        data-hash="md5-v8JQzpYsmNymctJBMQxkwg==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">栈迁移 - Pivoting</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="has-image">
+    <a href="/p/geek-challenge-2025-wp/">
+        
+        
+            <div class="article-image">
+                <img src="/p/geek-challenge-2025-wp/background.0ad88b7fa74a81463fd67f626acb46fb_hu_398d590aa2f5ece0.png" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post Geek Challenge 2025 WP"
+                        
+                        data-hash="md5-CtiLf6dKgUY/1n9iastG&#43;w==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Geek Challenge 2025 WP</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+            2025 - 
+        
+        2026 Converter258
+    </section>
+    
+
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.76af3192973d9c142d10a7a0f4711d6028f1034e8c3f81ae6a032fdf70ff1ea5.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+<style>
+    #TableOfContents > ul, ol {
+        ul, ol {
+            display: none;
+        }
+        .open {
+            display: block;
+        }
+    }
+</style>
+
+<script>
+    function initTocHide() {
+        
+        let toc = document.querySelector(".widget--toc");
+        if (!toc) {
+            return;
+        }
+        
+        window.addEventListener('scroll', function() {
+            
+            let openUl = document.querySelectorAll(".open");
+            if (openUl.length > 0) {
+              openUl.forEach((ul) => {
+                ul.classList.remove("open")
+              })
+            }
+            
+            let currentLi = document.querySelector(".active-class");
+            if (!currentLi) {
+                return
+            }
+            
+            if (currentLi.children.length > 1) {
+                currentLi.children[1].classList.add("open")
+            }
+            
+            let ul = currentLi.parentElement;
+            do {
+                ul.classList.add("open");
+                ul = ul.parentElement.parentElement
+            } while (ul !== undefined && (ul.localName === 'ul' || ul.localName === 'ol'))
+        });
+    }
+    initTocHide()
+</script>
+    </body>
+</html>
