@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="zh-cn" dir="ltr">
-    <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset='utf-8'>
+    <head><meta charset='utf-8'>
 <meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n">
 <title>栈迁移 - Pivoting</title>
 
-<link rel='canonical' href='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
+<link rel='canonical' href='https://Converter258.github.io/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
 
 <link rel="stylesheet" href="/scss/style.min.07013ecaa2cce7ca7c974ddd4c5f116605e3efaeaf51d39b2ffb94b303885842.css"><meta property='og:title' content="栈迁移 - Pivoting">
 <meta property='og:description' content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n">
-<meta property='og:url' content='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
+<meta property='og:url' content='https://Converter258.github.io/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/'>
 <meta property='og:site_name' content='Converter258'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='CTF' /><meta property='article:published_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='article:modified_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='og:image' content='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/background.jpg' />
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='CTF' /><meta property='article:published_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='article:modified_time' content='2026-01-12T21:50:06&#43;08:00'/><meta property='og:image' content='https://Converter258.github.io/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/background.jpg' />
 <meta name="twitter:title" content="栈迁移 - Pivoting">
 <meta name="twitter:description" content="栈迁移 之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用 文章讨论的内容都建立在x86-64 linux上\n栈相关寄存器 rsp 指向当前栈顶，决定 CPU 从哪里取返回地址与 ROP 数据 rbp 指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板 栈相关的指令 这里只讲一些需要特别注意的指令，add sub一类明显的就略过了\n"><meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content='http://localhost:1313/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/background.jpg' />
+    <meta name="twitter:image" content='https://Converter258.github.io/p/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/background.jpg' />
     </head>
     <body class="
     article-page
@@ -792,6 +792,30 @@
             
                 
 <article class="has-image">
+    <a href="/p/ret2dlresolve/">
+        
+        
+            <div class="article-image">
+                <img src="/p/ret2dlresolve/background.43a0a8d0fea02834815f4d372fd2d99c_hu_de36450c83ec8d2.jpg" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post Ret2dlresolve"
+                        
+                        data-hash="md5-Q6Co0P6gKDSBX003L9LZnA==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Ret2dlresolve</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="has-image">
     <a href="/p/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/">
         
         
@@ -944,7 +968,7 @@
                 src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
                 
                 >
-            </script><script type="text/javascript" src="/ts/main.76af3192973d9c142d10a7a0f4711d6028f1034e8c3f81ae6a032fdf70ff1ea5.js" defer></script>
+            </script><script type="text/javascript" src="/ts/main.c922af694cc257bf1ecc41c0dd7b0430f9114ec280ccf67cd2c6ad55f5316c4e.js" defer></script>
 <script>
     (function () {
         const customFont = document.createElement('link');
