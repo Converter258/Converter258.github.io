@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Research on C0nvR3 Lab</title><link>https://converter258.github.io/research/</link><description>Recent content in Research on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 27 Feb 2026 13:07:57 +0800</lastBuildDate><atom:link href="https://converter258.github.io/research/index.xml" rel="self" type="application/rss+xml"/><item><title>Perf与简单的侧信道攻击</title><link>https://converter258.github.io/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</link><pubDate>Fri, 27 Feb 2026 13:07:57 +0800</pubDate><guid>https://converter258.github.io/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/</guid><description>&lt;h2 id="perf"&gt;perf&lt;/h2&gt;
+&lt;h3 id="简介"&gt;简介&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;perf&lt;/code&gt; 是 Linux 系统性能分析工具集，全称是 &lt;code&gt;Performance Event Counters&lt;/code&gt;
+它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
+我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 &lt;code&gt;PMU&lt;/code&gt;
+功能&lt;/p&gt;
+&lt;h3 id="准备perf"&gt;准备perf&lt;/h3&gt;
+&lt;h4 id="事前准备"&gt;事前准备&lt;/h4&gt;
+&lt;p&gt;首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 &lt;code&gt;性能计数器&lt;/code&gt; ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上&lt;code&gt;虚拟化 CPU 性能计数器&lt;/code&gt;，并禁用所有HyperV相关的设置，并关闭虚拟化保护
+包括(仅限VMware使用者,wsl2 不要改):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Windows安全中心 -&amp;gt; 设备安全性 -&amp;gt; 内核隔离 -&amp;gt; 内存完整性/本地安全机构保护&lt;/li&gt;
+&lt;li&gt;Windows功能 -&amp;gt; Hyper-V/Virtual Machine Platform/Windows虚拟机监控程序平台&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id="perf安装"&gt;perf安装&lt;/h4&gt;
+&lt;p&gt;安装 perf 可以通过&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo apt-get install linux-tools-generic
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id="相关设置"&gt;相关设置&lt;/h4&gt;
+&lt;h5 id="使用权限"&gt;使用权限&lt;/h5&gt;
+&lt;p&gt;等安装完成后并不能直接使用，你需要先查看&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;cat /proc/sys/kernel/perf_event_paranoid
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这个&lt;code&gt;perf_event_paranoid&lt;/code&gt;设置了运行时权限相关的内容，建议修改成小于等于1的值&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;sudo sh -c &lt;span style="color:#a5d6ff"&gt;&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h5 id="cpu核心与内存分配"&gt;CPU核心与内存分配&lt;/h5&gt;
+&lt;p&gt;此时可以尝试一下使用&lt;/p&gt;</description></item></channel></rss>
