@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>VM on C0nvR3 Lab</title><link>https://converter258.github.io/tags/vm/</link><description>Recent content in VM on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Fri, 31 Jul 2026 11:31:51 +0800</lastBuildDate><atom:link href="https://converter258.github.io/tags/vm/index.xml" rel="self" type="application/rss+xml"/><item><title>wsl2的配置与使用</title><link>https://converter258.github.io/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/</link><pubDate>Fri, 31 Jul 2026 11:31:51 +0800</pubDate><guid>https://converter258.github.io/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/</guid><description>&lt;p&gt;wsl2是一款现代的 Linux 虚拟机解决方案，相较于以往的 wsl1 模拟了完整的 linux 内核，且可以非常方便的直接访问 windows 本机的文件，你可以通过 wsl2 配置不同的 linux 发行版进行使用。&lt;/p&gt;
+&lt;h2 id="windows-预先设置"&gt;windows 预先设置&lt;/h2&gt;
+&lt;p&gt;首先确保你的电脑使用的系统是 &lt;code&gt;windows 11&lt;/code&gt; ，理论上来说 win10 也可以但需要一些神秘代码的帮助这里不作多余讨论
+在正式开始之前请确认你打开了虚拟化，你可以按下 ctrl + shift +esc 在任务管理器的性能选项中查看
+&lt;figure class="article-image"&gt;&lt;img src="https://converter258.github.io/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/image.png" alt="alt text" loading="lazy"&gt;&lt;/figure&gt;
+
+如果你发现这一项没有启用，你应当去搜索自己购买的电脑的主板厂家的 bios 使用方法与虚拟化支持的开启，一般都可以直接搜到
+这里附上微星的设置方法&lt;a href="https://zhuanlan.zhihu.com/p/370466620"&gt;微星主板如何开启VT&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;其他厂家搜索关键词差不多&lt;/p&gt;
+&lt;p&gt;当你打开虚拟化后，接下来需要设置&lt;code&gt;Windows 功能&lt;/code&gt;
+在windows任务栏的搜索框中输入 &lt;code&gt;启用或关闭 Windows 功能&lt;/code&gt;
+&lt;figure class="article-image"&gt;&lt;img src="https://converter258.github.io/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/image-1.png" alt="alt text" loading="lazy"&gt;&lt;/figure&gt;
+
+部分情况下单独搜索&lt;code&gt;功能&lt;/code&gt;，开启这个选项卡，找到其中以下几项并开启&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Virtual Machine Platform&lt;/li&gt;
+&lt;li&gt;Windows Subsystem for Linux&lt;/li&gt;
+&lt;li&gt;Hyper-V&lt;/li&gt;
+&lt;li&gt;Windows Hypervisor Platform&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因为系统版本的原因，你这里可能会有几项使用的是中文翻译，也有可能会有几项缺少，但是主要的&lt;code&gt;Windows Subsystem for Linux&lt;/code&gt;和&lt;code&gt;Virtual Machine Platform&lt;/code&gt;一定要开启&lt;/p&gt;
+&lt;p&gt;&lt;figure class="article-image"&gt;&lt;img src="https://converter258.github.io/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/image-2.png" alt="alt text" loading="lazy"&gt;&lt;/figure&gt;
+
+完成后若提示需要重启电脑则请尝试重启以完成设置&lt;/p&gt;
+&lt;p&gt;如果除了 wsl 你还要使用其他的虚拟机如VMware之类的，请务必使用 VMware 25H2 以上的版本解决虚拟化独占问题，不然可能你两个都用不了&lt;/p&gt;
+&lt;h2 id="wsl2-安装"&gt;wsl2 安装&lt;/h2&gt;
+&lt;p&gt;首先按下 win + R 键输入&lt;code&gt;cmd&lt;/code&gt;或&lt;code&gt;pwsh&lt;/code&gt;打开命令行
+在其中输入&lt;/p&gt;</description></item></channel></rss>
