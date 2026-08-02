@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Re on C0nvR3 Lab</title><link>https://converter258.github.io/tags/re/</link><description>Recent content in Re on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 02 Aug 2026 13:09:50 +0800</lastBuildDate><atom:link href="https://converter258.github.io/tags/re/index.xml" rel="self" type="application/rss+xml"/><item><title>0-0 计算机组成初步</title><link>https://converter258.github.io/how2pwn/0-0-computer-structure/</link><pubDate>Sun, 02 Aug 2026 13:09:50 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-0-computer-structure/</guid><description>&lt;h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础"&gt;从 C 语言到汇编：二进制安全需要的计算机组成基础&lt;/h1&gt;
+&lt;p&gt;我们平时编写 C 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;add&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; a, &lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; b) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; a &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; b;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;但是 CPU 并不认识 &lt;code&gt;int&lt;/code&gt;、&lt;code&gt;return&lt;/code&gt; 或函数名。源代码经过编译器处理后，会被翻译成机器指令；机器指令本质上是一串二进制数据。汇编语言则为这些机器指令提供了便于人类阅读的写法。上面的函数可能对应如下汇编逻辑：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-asm" data-lang="asm"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#79c0ff;font-weight:bold"&gt;add:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;lea&lt;/span&gt; &lt;span style="color:#79c0ff;font-weight:bold"&gt;eax&lt;/span&gt;, [&lt;span style="color:#79c0ff;font-weight:bold"&gt;rdi&lt;/span&gt; &lt;span style="color:#f85149"&gt;+&lt;/span&gt; &lt;span style="color:#79c0ff;font-weight:bold"&gt;rsi&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;ret&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;对于普通软件开发，我们未必需要关心翻译后的结果；但在逆向工程、漏洞分析和恶意代码分析中，拿到的往往只有编译后的程序。此时，我们必须从寄存器、内存和汇编指令出发，重新理解程序做了什么。&lt;/p&gt;
+&lt;p&gt;本文不会完整讲授数字电路、流水线或缓存一致性等计算机组成原理课程内容，而是围绕二进制安全所需的主线展开：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;硬件如何协作 → CPU 如何保存数据 → 汇编指令如何操作数据和改变控制流 → 函数如何使用栈与寄存器。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;文中的汇编代码采用 &lt;strong&gt;x86-64 Intel 语法&lt;/strong&gt;，运行环境默认为 &lt;strong&gt;Linux 用户态&lt;/strong&gt;，函数调用遵循 &lt;strong&gt;System V AMD64 ABI&lt;/strong&gt;。示例以讲清原理为第一目标，实际编译结果会随着编译器版本、优化等级和源代码写法发生变化。&lt;/p&gt;
+&lt;h2 id="计算机由哪些主要硬件组成"&gt;计算机由哪些主要硬件组成&lt;/h2&gt;
+&lt;p&gt;一台计算机包含很多部件。对于分析普通用户态程序，我们首先需要认识 CPU、内存、外部存储、总线和输入输出设备。&lt;/p&gt;
+&lt;table&gt;
+ &lt;thead&gt;
+ &lt;tr&gt;
+ &lt;th&gt;部件&lt;/th&gt;
+ &lt;th&gt;主要作用&lt;/th&gt;
+ &lt;th&gt;与二进制分析的关系&lt;/th&gt;
+ &lt;/tr&gt;
+ &lt;/thead&gt;
+ &lt;tbody&gt;
+ &lt;tr&gt;
+ &lt;td&gt;CPU&lt;/td&gt;
+ &lt;td&gt;解释并执行机器指令，完成运算和控制&lt;/td&gt;
+ &lt;td&gt;汇编指令最终在 CPU 中执行&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;内存（RAM）&lt;/td&gt;
+ &lt;td&gt;临时保存正在运行的程序、代码和数据&lt;/td&gt;
+ &lt;td&gt;代码、栈、堆和全局变量都位于进程的虚拟地址空间中&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;硬盘或固态硬盘&lt;/td&gt;
+ &lt;td&gt;长期保存程序和文件，断电后数据仍存在&lt;/td&gt;
+ &lt;td&gt;ELF 可执行文件最初存放在这里，运行时再由系统装入内存&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;总线&lt;/td&gt;
+ &lt;td&gt;在 CPU、内存和设备之间传输地址、数据和控制信息&lt;/td&gt;
+ &lt;td&gt;决定各硬件如何交换信息，但初学阶段不必深入电气细节&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;tr&gt;
+ &lt;td&gt;输入输出设备&lt;/td&gt;
+ &lt;td&gt;让计算机与用户和外界交换数据&lt;/td&gt;
+ &lt;td&gt;程序通常通过操作系统提供的接口访问这些设备&lt;/td&gt;
+ &lt;/tr&gt;
+ &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3 id="1-cpu-内部有什么"&gt;1. CPU 内部有什么&lt;/h3&gt;
+&lt;p&gt;为了便于理解，可以把 CPU 内部的重要部分概括为：&lt;/p&gt;</description></item></channel></rss>

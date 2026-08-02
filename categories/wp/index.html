@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>WP | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.c49cf612ad062596063b0ef2d9bf2f48a82eba5fdb9b46c85d3f0396a3489b15.css integrity="sha256-xJz2Eq0GJZYGOw7y2b8vSKguul/bm0bIXT8DlqNImxU="><script src=/js/menu.min.6ef373a32edd39a26a8102b2b96e1d8558780d7de7c9591b5b168fcfa578e6bb.js integrity="sha256-bvNzoy7dOaJqgQKyuW4dhVh4DX3nyVkbWxaPz6V45rs=" defer></script></head><body><script id=friend-network-data type=application/json>{"connection":{"availability":"not monitored","command":"ssh \u003chost\u003e","protocol":"https"},"description":"Friends and trusted technical sites connected to C0nvR3 Lab.","hosts":[{"description":"MyFriend","host":"0xByt3","name":"Byte","since":"2026-07","state":"active","topics":["pwn","reverse","linux"],"url":"https://www.0xbyt3.com/"}],"updated":"2026-07-14","workspace":"C0nvR3 Lab"}</script><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>WP | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.447947d054de9ad730a8e45d0dde622bdd562f64212798d1ce913bfa35878ec9.css integrity="sha256-RHlH0FTemtcwqORdDd5iK91WL2QhJ5jRzpE7+jWHjsk="><script src=/js/menu.min.1164375157dc7fc99871e27bf64d3302f677e2bf9a9ccca3d89f9cc0bd4d82ac.js integrity="sha256-EWQ3UVfcf8mYceJ79k0zAvZ34r+anMyj2J+cwL1Ngqw=" defer></script></head><body><script id=friend-network-data type=application/json>{"connection":{"availability":"not monitored","command":"ssh \u003chost\u003e","protocol":"https"},"description":"Friends and trusted technical sites connected to C0nvR3 Lab.","hosts":[{"description":"MyFriend","host":"0xByt3","name":"Byte","since":"2026-07","state":"active","topics":["pwn","reverse","linux"],"url":"https://www.0xbyt3.com/"}],"updated":"2026-07-14","workspace":"C0nvR3 Lab"}</script><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
 <a role=menuitem href=/posts/>Blog</a>
 <a role=menuitem href=/research/>Research</a>
 <a role=menuitem href=/projects/>Projects</a>
@@ -11,7 +11,61 @@
 <a role=menuitem href=/categories/>Categories</a>
 <a role=menuitem href=/tags/>Tags</a></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>Help</button><div class=menu-dropdown role=menu><a role=menuitem href=/about/>About Site</a>
 <button type=button role=menuitem data-dialog-open=shortcut-dialog>Shortcut</button></div></div></nav><span class=site-name>C0nvR3 Lab</span></header><dialog class=site-dialog id=search-dialog aria-labelledby=search-title><form method=dialog class=dialog-header><h2 id=search-title>Search workspace</h2><button type=submit aria-label="Close search">×</button></form><label class=search-label for=site-search>Search titles, sections, and tags</label>
-<input id=site-search type=search placeholder="Type to filter..." autocomplete=off><ul class=search-results data-search-results><li data-search-item data-search-text='2.4x 的 tcache 机制分析 research glibc <h2 id="简述">简述</h2>
+<input id=site-search type=search placeholder="Type to filter..." autocomplete=off><ul class=search-results data-search-results><li data-search-item data-search-text='0-0 计算机组成初步 how2pwn re pwn <h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础">从 c 语言到汇编：二进制安全需要的计算机组成基础</h1>
+<p>我们平时编写 c 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">add</span>(<span style="color:#ff7b72">int</span> a, <span style="color:#ff7b72">int</span> b) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> a <span style="color:#ff7b72;font-weight:bold">+</span> b;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>但是 cpu 并不认识 <code>int</code>、<code>return</code> 或函数名。源代码经过编译器处理后，会被翻译成机器指令；机器指令本质上是一串二进制数据。汇编语言则为这些机器指令提供了便于人类阅读的写法。上面的函数可能对应如下汇编逻辑：</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#79c0ff;font-weight:bold">add:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">lea</span> <span style="color:#79c0ff;font-weight:bold">eax</span>, [<span style="color:#79c0ff;font-weight:bold">rdi</span> <span style="color:#f85149">+</span> <span style="color:#79c0ff;font-weight:bold">rsi</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">ret</span>
+</span></span></code></pre></div><p>对于普通软件开发，我们未必需要关心翻译后的结果；但在逆向工程、漏洞分析和恶意代码分析中，拿到的往往只有编译后的程序。此时，我们必须从寄存器、内存和汇编指令出发，重新理解程序做了什么。</p>
+<p>本文不会完整讲授数字电路、流水线或缓存一致性等计算机组成原理课程内容，而是围绕二进制安全所需的主线展开：</p>
+<blockquote>
+<p>硬件如何协作 → cpu 如何保存数据 → 汇编指令如何操作数据和改变控制流 → 函数如何使用栈与寄存器。</p>
+</blockquote>
+<p>文中的汇编代码采用 <strong>x86-64 intel 语法</strong>，运行环境默认为 <strong>linux 用户态</strong>，函数调用遵循 <strong>system v amd64 abi</strong>。示例以讲清原理为第一目标，实际编译结果会随着编译器版本、优化等级和源代码写法发生变化。</p>
+<h2 id="计算机由哪些主要硬件组成">计算机由哪些主要硬件组成</h2>
+<p>一台计算机包含很多部件。对于分析普通用户态程序，我们首先需要认识 cpu、内存、外部存储、总线和输入输出设备。</p>
+<table>
+  <thead>
+      <tr>
+          <th>部件</th>
+          <th>主要作用</th>
+          <th>与二进制分析的关系</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>cpu</td>
+          <td>解释并执行机器指令，完成运算和控制</td>
+          <td>汇编指令最终在 cpu 中执行</td>
+      </tr>
+      <tr>
+          <td>内存（ram）</td>
+          <td>临时保存正在运行的程序、代码和数据</td>
+          <td>代码、栈、堆和全局变量都位于进程的虚拟地址空间中</td>
+      </tr>
+      <tr>
+          <td>硬盘或固态硬盘</td>
+          <td>长期保存程序和文件，断电后数据仍存在</td>
+          <td>elf 可执行文件最初存放在这里，运行时再由系统装入内存</td>
+      </tr>
+      <tr>
+          <td>总线</td>
+          <td>在 cpu、内存和设备之间传输地址、数据和控制信息</td>
+          <td>决定各硬件如何交换信息，但初学阶段不必深入电气细节</td>
+      </tr>
+      <tr>
+          <td>输入输出设备</td>
+          <td>让计算机与用户和外界交换数据</td>
+          <td>程序通常通过操作系统提供的接口访问这些设备</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="1-cpu-内部有什么">1. cpu 内部有什么</h3>
+<p>为了便于理解，可以把 cpu 内部的重要部分概括为：</p>'><a href=/how2pwn/0-0-computer-structure/><span>0-0 计算机组成初步</span><small>how2pwn/</small></a></li><li data-search-item data-search-text='2.4x 的 tcache 机制分析 research glibc <h2 id="简述">简述</h2>
 <p>在 2.39 到 2.40 中，malloc.c 并未发生变化，因此我们这里主要讲一些 2.41 到 2.43 的 tcache 相关的一些小细节
 在这三个版本中，主要变化可以简单概括为</p>
 <ul>
@@ -88,7 +142,7 @@
 </span></span><span style="display:flex;"><span>  tcache_entry <span style="color:#ff7b72;font-weight:bold">*</span>entries[tcache_max_bins];
 </span></span><span style="display:flex;"><span>} tcache_perthread_struct;
 </span></span></code></pre></div><p>entry 的部分基本没有变化，这里主要变化还是原本的 counts 数组变成了 num_slots 数组
-原本的 counts 数组表示对应索引下 tcache 链表的长度，现在 num_slots 数组中变为了对应索引下设剩下的空槽位</p>'><a href=/research/2.4x-%E7%9A%84-tcache-%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90/><span>2.4x 的 tcache 机制分析</span><small>research/</small></a></li><li data-search-item data-search-text="about   <p>你好，这里是converter258，也可以叫我c0nvr3</p>
+原本的 counts 数组表示对应索引下 tcache 链表的长度，现在 num_slots 数组中变为了对应索引下设剩下的空槽位</p>'><a href=/research/glibc-large-tcache/><span>2.4x 的 tcache 机制分析</span><small>research/</small></a></li><li data-search-item data-search-text="about   <p>你好，这里是converter258，也可以叫我c0nvr3</p>
 <p>是个人类(大概?</p>
 <p>另外就是ta快饿死了，能不能赏口饭吃</p>"><a href=/about/><span>About</span><small>/</small></a></li><li data-search-item data-search-text="friends network   <p>这是 c0nvr3 lab 的友链网络。可以点击 json 中的 url，或者在 terminal 中使用 <code>ssh &amp;lt;host&amp;gt;</code> 访问对应站点。</p>"><a href=/links/><span>Friends Network</span><small>/</small></a></li><li data-search-item data-search-text='geek challenge 2025 wp ctf wp ctf <hr>
 <p>这里只收录了我个人的wp,我队友的部分就不放出来了
@@ -98,7 +152,7 @@
 <h3 id="old_rop">old_rop</h3>
 <h4 id="解题流程">解题流程</h4>
 <p>查保护
-<figure class="article-image"><img src="/ctf/geek-challenge-2025-wp/image.png" alt="alt text" loading="lazy"></figure>
+<figure class="article-image"><img src="/ctf/geek-challenge-2025-wp/image.png" width="461" height="200" alt="old_rop 二进制安全保护检查结果" loading="lazy"></figure>
 
 查伪代码</p>
 <div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">__int64</span> <span style="color:#ff7b72">__fastcall</span> <span style="color:#d2a8ff;font-weight:bold">main</span>(<span style="color:#ff7b72">int</span> a1, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a2, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a3)
@@ -183,11 +237,11 @@
 </code></pre><p>这个<code>perf_event_paranoid</code>设置了运行时权限相关的内容，建议修改成小于等于1的值</p>
 <div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo sh -c <span style="color:#a5d6ff">&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;</span>
 </span></span></code></pre></div><h5 id="cpu核心与内存分配">cpu核心与内存分配</h5>
-<p>此时可以尝试一下使用</p>'><a href=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/><span>Perf与简单的侧信道攻击</span><small>research/</small></a></li><li data-search-item data-search-text='ret2dlresolve posts ctf <h2 id="理论部分">理论部分</h2>
+<p>此时可以尝试一下使用</p>'><a href=/research/perf-side-channel-attack/><span>Perf与简单的侧信道攻击</span><small>research/</small></a></li><li data-search-item data-search-text='ret2dlresolve posts ctf <h2 id="理论部分">理论部分</h2>
 <p>首先最好确认你学习过elf文件结构相关的内容，当然如果没学过这里也会简单的讲解一些
 本文主要讲靠pwntools的ret2dlresolvepayload工具一把梭所需payload,这比手搓payload轮椅太多了，手搓payload咕到下回了，毕竟国道上的大运只管开就好了，但旁边的小轿车考虑的可就多了</p>
 <p>这里来复习一下动态链接和延迟绑定
-<figure class="article-image"><img src="/posts/ret2dlresolve/lazy-plt.png" alt="alt text" loading="lazy"></figure>
+<figure class="article-image"><img src="/posts/ret2dlresolve/lazy-plt.png" width="717" height="885" alt="elf 延迟绑定过程中 plt、got 与动态解析器的调用流程" loading="lazy"></figure>
 
 图片中展示了当我们call一个函数时的大致流程(虽然缺少了部分内容，但是还是很直观的)，如果我们首次 call 一个函数，首先是plt[n]被执行，jmp 到 got 表中   对应的条目,但此时该got条目里存的还不是该函数的真实地址，而是 该函数 plt表 中下一条指令的地址，然后此时会push reloc_arg,它是在重定位表 .rel.plt 中，用来定位函数相关信息的一个偏移量,接下来跳转到 plt 的起始部分，通常称为 plt[0],然后plt[0] 会先 push 一个 link_map 结构体的地址（通过 got[1] 获得），然后 jmp 到 _dl_runtime_resolve 函数（其地址存储在 got[2] 中）解析和填充got[n]为真实的函数地址，这个过程中我们只需要在可控的内存中伪造_dl_runtime_resolve的参数，也就是link_map 和 reloc_arg</p>
 <h2 id="demo">demo</h2>
@@ -215,14 +269,14 @@
 <h2 id="windows-预先设置">windows 预先设置</h2>
 <p>首先确保你的电脑使用的系统是 <code>windows 11</code> ，理论上来说 win10 也可以但需要一些神秘代码的帮助这里不作多余讨论
 在正式开始之前请确认你打开了虚拟化，你可以按下 ctrl + shift +esc 在任务管理器的性能选项中查看
-<figure class="article-image"><img src="/posts/wsl2%e7%9a%84%e9%85%8d%e7%bd%ae%e4%b8%8e%e4%bd%bf%e7%94%a8/image.png" alt="alt text" loading="lazy"></figure>
+<figure class="article-image"><img src="/posts/wsl2-setup/image.png" width="985" height="685" alt="任务管理器中显示虚拟化已启用" loading="lazy"></figure>
 
 如果你发现这一项没有启用，你应当去搜索自己购买的电脑的主板厂家的 bios 使用方法与虚拟化支持的开启，一般都可以直接搜到
 这里附上微星的设置方法<a href="https://zhuanlan.zhihu.com/p/370466620">微星主板如何开启vt</a></p>
 <p>其他厂家搜索关键词差不多</p>
 <p>当你打开虚拟化后，接下来需要设置<code>windows 功能</code>
 在windows任务栏的搜索框中输入 <code>启用或关闭 windows 功能</code>
-<figure class="article-image"><img src="/posts/wsl2%e7%9a%84%e9%85%8d%e7%bd%ae%e4%b8%8e%e4%bd%bf%e7%94%a8/image-1.png" alt="alt text" loading="lazy"></figure>
+<figure class="article-image"><img src="/posts/wsl2-setup/image-1.png" width="333" height="81" alt="windows 搜索中的启用或关闭 windows 功能入口" loading="lazy"></figure>
 
 部分情况下单独搜索<code>功能</code>，开启这个选项卡，找到其中以下几项并开启</p>
 <ul>
@@ -232,13 +286,10 @@
 <li>windows hypervisor platform</li>
 </ul>
 <p>因为系统版本的原因，你这里可能会有几项使用的是中文翻译，也有可能会有几项缺少，但是主要的<code>windows subsystem for linux</code>和<code>virtual machine platform</code>一定要开启</p>
-<p><figure class="article-image"><img src="/posts/wsl2%e7%9a%84%e9%85%8d%e7%bd%ae%e4%b8%8e%e4%bd%bf%e7%94%a8/image-2.png" alt="alt text" loading="lazy"></figure>
+<p><figure class="article-image"><img src="/posts/wsl2-setup/image-2.png" width="413" height="678" alt="windows 功能中的 wsl 与虚拟机平台选项" loading="lazy"></figure>
 
 完成后若提示需要重启电脑则请尝试重启以完成设置</p>
-<p>如果除了 wsl 你还要使用其他的虚拟机如vmware之类的，请务必使用 vmware 25h2 以上的版本解决虚拟化独占问题，不然可能你两个都用不了</p>
-<h2 id="wsl2-安装">wsl2 安装</h2>
-<p>首先按下 win + r 键输入<code>cmd</code>或<code>pwsh</code>打开命令行
-在其中输入</p>'><a href=/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/><span>wsl2的配置与使用</span><small>posts/</small></a></li><li data-search-item data-search-text='两百行代码搓一个原始神经网络 posts  <p>这个文章主要还是因为这周研究了挺久的ai相关的东西，然后休闲时刷视频发现了这个</p>
+<p>如果除了 wsl 你还要使用其他的虚拟机如vmware之类的，请务必使用 vmware 25h2 以上的版本解决虚拟化独占问题，不然可能你两个都用不了</p>'><a href=/posts/wsl2-setup/><span>wsl2的配置与使用</span><small>posts/</small></a></li><li data-search-item data-search-text='两百行代码搓一个原始神经网络 posts  <p>这个文章主要还是因为这周研究了挺久的ai相关的东西，然后休闲时刷视频发现了这个</p>
 <p><a href="https://www.bilibili.com/video/bv1zp4y1g7g5/?share_source=copy_web&amp;amp;vd_source=853200eb173acad552081e78b7529b49">we&amp;rsquo;re building computers wrong</a></p>
 <p>闲的没事尝试复现了一下其中的第一个demo，这也是是一个很简单但很有意思的demo
 如果你闲的蛋疼可以考虑看一下视频，就能大致知到原理了，当然你也可以考虑跳过，我在下面简述一下</p>
@@ -288,7 +339,7 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fclose</span>(f);
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="连接权重的加载">连接权重的加载</h4>
-<p>同样，我们可以给将权重保存到.bin文件，并从此加载</p>'><a href=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/><span>两百行代码搓一个原始神经网络</span><small>posts/</small></a></li><li data-search-item data-search-text='栈迁移 - pivoting posts ctf <h1 id="栈迁移">栈迁移</h1>
+<p>同样，我们可以给将权重保存到.bin文件，并从此加载</p>'><a href=/posts/neural-network-from-scratch/><span>两百行代码搓一个原始神经网络</span><small>posts/</small></a></li><li data-search-item data-search-text='栈迁移 - pivoting posts ctf <h1 id="栈迁移">栈迁移</h1>
 <p>之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用
 文章讨论的内容都建立在<code>x86-64 linux</code>上</p>
 <h2 id="栈相关寄存器">栈相关寄存器</h2>
@@ -375,10 +426,10 @@ legend: stack | heap | code | data | wx | rodata
     0x7ffff7ffb000     0x7ffff7ffd000 r--p     2000   36000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
     0x7ffff7ffd000     0x7ffff7fff000 rw-p     2000   38000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
     0x7ffffffde000     0x7ffffffff000 rw-p    21000       0 [stack]
-</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class=tree-link href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/><span aria-hidden=true>·</span>wsl2的配置与使用</a></li><li><a class="tree-link tree-file" href=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class=tree-link href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/2.4x-%E7%9A%84-tcache-%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90/><span aria-hidden=true>·</span>2.4x 的 tcache 机制分析</a></li><li><a class="tree-link tree-file" href=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/links/><span aria-hidden=true>⌄</span>links/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/links/><span aria-hidden=true>·</span>friends.json</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><section class=list-page><header><p class=path>workspace/categories/WP/</p><h1>WP</h1></header><ul class=content-list><li><a href=/ctf/geek-challenge-2025-wp/>Geek Challenge 2025 WP</a>
+</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/stack-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class=tree-link href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/wsl2-setup/><span aria-hidden=true>·</span>wsl2的配置与使用</a></li><li><a class="tree-link tree-file" href=/posts/neural-network-from-scratch/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/stack-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class=tree-link href=/how2pwn/><span aria-hidden=true>⌄</span>How2pwn/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/how2pwn/0-0-computer-structure/><span aria-hidden=true>·</span>0-0 计算机组成初步</a></li></ul></li><li class=tree-directory><a class=tree-link href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/glibc-large-tcache/><span aria-hidden=true>·</span>2.4x 的 tcache 机制分析</a></li><li><a class="tree-link tree-file" href=/research/perf-side-channel-attack/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/links/><span aria-hidden=true>⌄</span>links/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/links/><span aria-hidden=true>·</span>friends.json</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><section class=list-page><header><p class=path>workspace/categories/WP/</p><h1>WP</h1></header><ul class=content-list><li><a href=/ctf/geek-challenge-2025-wp/>Geek Challenge 2025 WP</a>
 <time datetime=2025-12-11>2025-12-11</time><p><hr><p>这里只收录了我个人的wp,我队友的部分就不放出来了
 第一次写，写的烂，就当参考吧，可能有很多地方不严谨或有误
-还请各位大佬指教</p><h2 id=pwn>PWN</h2><h3 id=old_rop>old_rop</h3><h4 id=解题流程>解题流程</h4><p>查保护<figure class=article-image><img src=/ctf/geek-challenge-2025-wp/image.png alt="alt text" loading=lazy></figure>查伪代码</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>__int64</span> <span style=color:#ff7b72>__fastcall</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>int</span> a1, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>**</span>a2, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>**</span>a3)
+还请各位大佬指教</p><h2 id=pwn>PWN</h2><h3 id=old_rop>old_rop</h3><h4 id=解题流程>解题流程</h4><p>查保护<figure class=article-image><img src=/ctf/geek-challenge-2025-wp/image.png width=461 height=200 alt="old_rop 二进制安全保护检查结果" loading=lazy></figure>查伪代码</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>__int64</span> <span style=color:#ff7b72>__fastcall</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>int</span> a1, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>**</span>a2, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>**</span>a3)
 </span></span><span style=display:flex><span>{
 </span></span><span style=display:flex><span>  _QWORD buf[<span style=color:#a5d6ff>10</span>]; <span style=color:#8b949e;font-style:italic>// [rsp+10h] [rbp-50h] BYREF
 </span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
@@ -434,21 +485,23 @@ legend: stack | heap | code | data | wx | rodata
 </span></span><span style=display:flex><span>io<span style=color:#ff7b72;font-weight:700>.</span>interactive()
 </span></span></code></pre></div><h3 id=mission-calculator>Mission Calculator</h3><h4 id=解题流程-1>解题流程</h4><p>这题不用查保护，就是一个单纯的计算题，直接写一个for全算出来发回去就行</p></p></li></ul></section></div><section class=terminal aria-label=Terminal><div class=panel-header><p class=panel-title>Terminal</p><button class=panel-collapse type=button data-view-toggle=terminal aria-label="Collapse Terminal" title="Collapse Terminal">⌄</button></div><div class=terminal-body data-terminal-output aria-live=polite><p class=terminal-output>C0nvR3 Lab terminal ready. Type <span>help</span> for commands.</p></div><form class=terminal-form data-terminal><label for=terminal-command><span class=prompt data-terminal-user>C0nvR3@lab</span>:<span class=directory data-terminal-path>~/workspace</span><span data-terminal-symbol>$</span></label>
 <input id=terminal-command name=command type=text autocomplete=off autocapitalize=off spellcheck=false aria-label="Terminal command"></form><template id=terminal-filesystem><i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/posts></i>
-<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/wsl2_env data-url=/posts/wsl2%E7%9A%84%E9%85%8D%E7%BD%AE%E4%B8%8E%E4%BD%BF%E7%94%A8/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/wsl2_env data-url=/posts/wsl2-setup/></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-1.png></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-2.png></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-3.png></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-4.png></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image.png></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/dr.md></i>
-<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/acient_neural_network data-url=/posts/%E4%B8%A4%E7%99%BE%E8%A1%8C%E4%BB%A3%E7%A0%81%E6%90%93%E4%B8%80%E4%B8%AA%E5%8E%9F%E5%A7%8B%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/acient_neural_network data-url=/posts/neural-network-from-scratch/></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/acient_neural_network/image.png></i>
 <i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/ret2dlresolve data-url=/posts/ret2dlresolve/></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/ret2dlresolve/lazy-plt.png></i>
-<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/Pivoting data-url=/posts/%E6%A0%88%E8%BF%81%E7%A7%BB-pivoting/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/Pivoting data-url=/posts/stack-pivoting/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/How2pwn></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/How2pwn/0-0-computer_structure data-url=/how2pwn/0-0-computer-structure/></i>
 <i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/research></i>
-<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/large_tcache data-url=/research/2.4x-%E7%9A%84-tcache-%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90/></i>
-<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/perf-side-channel-attack data-url=/research/perf%E4%B8%8E%E7%AE%80%E5%8D%95%E7%9A%84%E4%BE%A7%E4%BF%A1%E9%81%93%E6%94%BB%E5%87%BB/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/large_tcache data-url=/research/glibc-large-tcache/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/perf-side-channel-attack data-url=/research/perf-side-channel-attack/></i>
 <i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/projects></i>
 <i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/ctf></i>
 <i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025 data-url=/ctf/geek-challenge-2025-wp/></i>

