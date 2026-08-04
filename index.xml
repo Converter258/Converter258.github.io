@@ -1,4 +1,81 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>C0nvR3 Lab</title><link>https://converter258.github.io/</link><description>Recent content on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Sun, 02 Aug 2026 13:09:50 +0800</lastBuildDate><atom:link href="https://converter258.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>0-0 计算机组成初步</title><link>https://converter258.github.io/how2pwn/0-0-computer-structure/</link><pubDate>Sun, 02 Aug 2026 13:09:50 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-0-computer-structure/</guid><description>&lt;h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础"&gt;从 C 语言到汇编：二进制安全需要的计算机组成基础&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>C0nvR3 Lab</title><link>https://converter258.github.io/</link><description>Recent content on C0nvR3 Lab</description><generator>Hugo</generator><language>zh-cn</language><lastBuildDate>Tue, 04 Aug 2026 15:10:59 +0800</lastBuildDate><atom:link href="https://converter258.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>1-0 Stack_overflow</title><link>https://converter258.github.io/how2pwn/1-0-stack_overflow/</link><pubDate>Tue, 04 Aug 2026 15:10:59 +0800</pubDate><guid>https://converter258.github.io/how2pwn/1-0-stack_overflow/</guid><description>&lt;h1 id="栈溢出基础"&gt;栈溢出基础&lt;/h1&gt;
+&lt;p&gt;前面的文章分别介绍了寄存器、汇编、栈帧与调用约定
+现在我们把它们串起来：如果程序存在栈缓冲区越界，攻击者能把程序带到哪里去？&lt;/p&gt;
+&lt;p&gt;这篇文章的目标是让你亲手完成一次最简栈溢出——覆盖返回地址，让程序跳到不该执行的地方。读完本文后，你将能够自己编译漏洞程序、用 GDB 定位偏移、用 Python 构造输入，为后续的 ret2text、ret2shellcode 等专项文章做好准备&lt;/p&gt;
+&lt;h2 id="什么是栈溢出"&gt;什么是栈溢出&lt;/h2&gt;
+&lt;p&gt;当程序向栈上的局部数组写入超过其容量的数据时，多出的部分会覆盖相邻内存。如果覆盖范围到达保存的返回地址，&lt;code&gt;ret&lt;/code&gt; 指令就会取到一个由攻击者控制的值，从而跳转到任意地址。&lt;/p&gt;
+&lt;p&gt;回顾计算机组成中的栈帧布局：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;高地址
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;+-------------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;| 返回地址 | 由 call 压入
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;+-------------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;| 调用者保存的 RBP |
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;+-------------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;| 局部变量、数组、填充 | ← 数组从这里开始，向高地址方向写入
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;+-------------------------+
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;低地址
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;C 语言不检查数组边界。如果 &lt;code&gt;buffer[32]&lt;/code&gt; 的写入没有长度限制，多出的字节就会沿栈&amp;quot;向上&amp;quot;覆盖，依次破坏局部变量、旧 RBP，最终触及返回地址。一旦 &lt;code&gt;ret&lt;/code&gt; 执行，CPU 就会跳到攻击者选定的位置。&lt;/p&gt;
+&lt;h2 id="演示程序"&gt;演示程序&lt;/h2&gt;
+&lt;p&gt;这里提供一个demo&lt;/p&gt;
+&lt;details&gt;
+&lt;summary&gt;点击查看&lt;/summary&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;#include&lt;/span&gt; &lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;#include&lt;/span&gt; &lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;#include&lt;/span&gt; &lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-weight:bold;font-style:italic"&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * win — 正常情况下不会被调用的函数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * 溢出利用的目标就是让程序&amp;#34;意外&amp;#34;进入这里。
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;win&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;=================================&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34; 你成功了！程序跳转到了 win 函数。&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;=================================&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;exit&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * vulnerable — 包含栈溢出漏洞的函数
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; *
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * gets 不检查目标缓冲区大小，超出 buffer[32] 的输入
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * 会持续写入栈上更高地址，可能覆盖：
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * - 其他局部变量
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * - 保存的 RBP
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * - 返回地址
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;vulnerable&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;char&lt;/span&gt; buffer[&lt;span style="color:#a5d6ff"&gt;32&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;请输入一些文本：&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#8b949e;font-style:italic"&gt;/* gets 不会限制读取长度 */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;gets&lt;/span&gt;(buffer);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;你输入了：%s&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;, buffer);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; * print_info — 打印可用于偏移计算的信息
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#8b949e;font-style:italic"&gt; */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;print_info&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;-----------------&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;win() 地址：%p&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;, (&lt;span style="color:#ff7b72"&gt;void&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;)win);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;-----------------&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;main&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; argc, &lt;span style="color:#ff7b72"&gt;char&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;**&lt;/span&gt;argv)
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;print_info&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;vulnerable&lt;/span&gt;();
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;printf&lt;/span&gt;(&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;程序正常退出。&lt;/span&gt;&lt;span style="color:#79c0ff"&gt;\n&lt;/span&gt;&lt;span style="color:#a5d6ff"&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/details&gt;
+&lt;p&gt;vulnerable 中 &lt;code&gt;gets&lt;/code&gt; 会一直读取直到换行，完全不管 &lt;code&gt;buffer&lt;/code&gt; 只有 32 字节。&lt;code&gt;win&lt;/code&gt; 是一个正常情况下永远不会被调用的函数，我们的目标就是通过溢出覆盖返回地址，让程序&amp;quot;意外&amp;quot;进入 &lt;code&gt;win&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>0-0 计算机组成初步</title><link>https://converter258.github.io/how2pwn/0-0-computer-structure/</link><pubDate>Sun, 02 Aug 2026 13:09:50 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-0-computer-structure/</guid><description>&lt;h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础"&gt;从 C 语言到汇编：二进制安全需要的计算机组成基础&lt;/h1&gt;
 &lt;p&gt;我们平时编写 C 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;add&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; a, &lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; b) {
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; a &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; b;

