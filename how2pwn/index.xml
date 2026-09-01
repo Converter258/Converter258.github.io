@@ -207,7 +207,38 @@ rsp+8 system_addr 此处地址指向system()
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; &lt;span style="color:#a5d6ff"&gt;0&lt;/span&gt;;
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/details&gt;
-&lt;p&gt;vulnerable 中 &lt;code&gt;gets&lt;/code&gt; 会一直读取直到换行，完全不管 &lt;code&gt;buffer&lt;/code&gt; 只有 32 字节。&lt;code&gt;win&lt;/code&gt; 是一个正常情况下永远不会被调用的函数，我们的目标就是通过溢出覆盖返回地址，让程序&amp;quot;意外&amp;quot;进入 &lt;code&gt;win&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>0-0 计算机组成初步</title><link>https://converter258.github.io/how2pwn/0-0-computer-structure/</link><pubDate>Sun, 02 Aug 2026 13:09:50 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-0-computer-structure/</guid><description>&lt;h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础"&gt;从 C 语言到汇编：二进制安全需要的计算机组成基础&lt;/h1&gt;
+&lt;p&gt;vulnerable 中 &lt;code&gt;gets&lt;/code&gt; 会一直读取直到换行，完全不管 &lt;code&gt;buffer&lt;/code&gt; 只有 32 字节。&lt;code&gt;win&lt;/code&gt; 是一个正常情况下永远不会被调用的函数，我们的目标就是通过溢出覆盖返回地址，让程序&amp;quot;意外&amp;quot;进入 &lt;code&gt;win&lt;/code&gt;。&lt;/p&gt;</description></item><item><title>0-2 Pwntools</title><link>https://converter258.github.io/how2pwn/0-2-pwntools/</link><pubDate>Sun, 02 Aug 2026 13:38:06 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-2-pwntools/</guid><description>&lt;p&gt;工欲善其事，必先利其器，我们这里来讲讲打 pwn 必备的 pwntools 库
+pwntools 不仅提供了编写exp必须的一些功能，也提供了一些必要的 cli 工具&lt;/p&gt;
+&lt;p&gt;主要讲一些常用功能，部分内容因为用的的确很少就简单省略一下&lt;/p&gt;
+&lt;h2 id="pwntools-安装"&gt;pwntools 安装&lt;/h2&gt;
+&lt;p&gt;直接 pip 安装即可&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;pip install pwntools
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;安装完成后可以打开 python 交互模式尝试一下相关功能能否正常使用
+比如尝试一下&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;❯ python3
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Python 3.12.3 &lt;span style="color:#ff7b72;font-weight:bold"&gt;(&lt;/span&gt;main, Jun &lt;span style="color:#a5d6ff"&gt;19&lt;/span&gt; 2026, 12:46:00&lt;span style="color:#ff7b72;font-weight:bold"&gt;)&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;[&lt;/span&gt;GCC 13.3.0&lt;span style="color:#ff7b72;font-weight:bold"&gt;]&lt;/span&gt; on linux
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;Type &lt;span style="color:#a5d6ff"&gt;&amp;#34;help&amp;#34;&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;&amp;#34;copyright&amp;#34;&lt;/span&gt;, &lt;span style="color:#a5d6ff"&gt;&amp;#34;credits&amp;#34;&lt;/span&gt; or &lt;span style="color:#a5d6ff"&gt;&amp;#34;license&amp;#34;&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;for&lt;/span&gt; more information.
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&amp;gt;&amp;gt;&amp;gt; from pwn import *
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&amp;gt;&amp;gt;&amp;gt; cyclic&lt;span style="color:#ff7b72;font-weight:bold"&gt;(&lt;/span&gt;0x20&lt;span style="color:#ff7b72;font-weight:bold"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;b&lt;span style="color:#a5d6ff"&gt;&amp;#39;aaaabaaacaaadaaaeaaafaaagaaahaaa&amp;#39;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&amp;gt;&amp;gt;&amp;gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;确认功能正常即可&lt;/p&gt;
+&lt;h2 id="与程序通信"&gt;与程序通信&lt;/h2&gt;
+&lt;h3 id="创建通信"&gt;创建通信&lt;/h3&gt;
+&lt;p&gt;我们可以通过 &lt;code&gt;process()/remote()&lt;/code&gt; 创建一个通信连接
+当我们本地运行一个文件时可以&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-py" data-lang="py"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;from&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;pwn&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;import&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; process(&lt;span style="color:#a5d6ff"&gt;&amp;#39;./elf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在本地运行时，也可以通过 gdb 启动程序&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-py" data-lang="py"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;from&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;pwn&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;import&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; gdb&lt;span style="color:#ff7b72;font-weight:bold"&gt;.&lt;/span&gt;debug(&lt;span style="color:#a5d6ff"&gt;&amp;#39;./elf&amp;#39;&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;我们也可以通过 &lt;code&gt;remote()&lt;/code&gt; TCP 连接到远程&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-py" data-lang="py"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;from&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;pwn&lt;/span&gt; &lt;span style="color:#ff7b72"&gt;import&lt;/span&gt; &lt;span style="color:#ff7b72;font-weight:bold"&gt;*&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;io &lt;span style="color:#ff7b72;font-weight:bold"&gt;=&lt;/span&gt; remote(&lt;span style="color:#a5d6ff"&gt;&amp;#39;127.0.0.1&amp;#39;&lt;/span&gt;,&lt;span style="color:#a5d6ff"&gt;11451&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以通过 &lt;code&gt;close()&lt;/code&gt; 关闭连接&lt;/p&gt;</description></item><item><title>0-0 计算机组成初步</title><link>https://converter258.github.io/how2pwn/0-0-computer-structure/</link><pubDate>Sun, 02 Aug 2026 13:09:50 +0800</pubDate><guid>https://converter258.github.io/how2pwn/0-0-computer-structure/</guid><description>&lt;h1 id="从-c-语言到汇编二进制安全需要的计算机组成基础"&gt;从 C 语言到汇编：二进制安全需要的计算机组成基础&lt;/h1&gt;
 &lt;p&gt;我们平时编写 C 语言程序时，习惯用变量、循环、判断和函数来描述程序逻辑：&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#e6edf3;background-color:#0d1117;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-c" data-lang="c"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; &lt;span style="color:#d2a8ff;font-weight:bold"&gt;add&lt;/span&gt;(&lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; a, &lt;span style="color:#ff7b72"&gt;int&lt;/span&gt; b) {
 &lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt; &lt;span style="color:#ff7b72"&gt;return&lt;/span&gt; a &lt;span style="color:#ff7b72;font-weight:bold"&gt;+&lt;/span&gt; b;
